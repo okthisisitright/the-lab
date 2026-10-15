@@ -44,15 +44,31 @@ jobs:
           path.write_bytes(base64.b64decode(os.environ['SIGNING_B64'], validate=True))
           path.chmod(0o600)
           PY
-      - name: Verify and compile
-        run: ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
+      - name: Build installable debug APK
+        run: ./gradlew --no-daemon --console=plain :app:assembleDebug
       - name: Development APK
+        id: debug-apk
         uses: actions/upload-artifact@v4
         with:
           name: Widget-Lab-development-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
           if-no-files-found: error
+          compression-level: 0
+      - name: Show exact APK download link
+        env:
+          ARTIFACT_URL: ${{ steps.debug-apk.outputs.artifact-url }}
+        run: |
+          {
+            echo '### Widget Lab APK is ready'
+            echo
+            echo "[Download Widget-Lab-development-APK]($ARTIFACT_URL)"
+            echo
+            echo 'Sign in to GitHub, download the artifact ZIP, extract app-debug.apk, and open it on your Android phone.'
+            echo 'If GitHub hides Artifacts on mobile, use your browser’s Desktop site option.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Run checks and compile release after APK delivery
+        run: ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
       - name: Signed private release APK
         if: env.SIGNING_B64 != '' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
