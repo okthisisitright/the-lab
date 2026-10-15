@@ -1,0 +1,1 @@
+-keep class dev.widgetlab.widgets.** extends android.appwidget.AppWidgetProvider { *; }

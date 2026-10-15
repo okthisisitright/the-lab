@@ -1,0 +1,113 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+    <application android:name=".widgets.LabApplication" android:label="Widget Lab" android:icon="@drawable/ic_lab" android:roundIcon="@drawable/ic_lab" android:theme="@style/Theme.WidgetLab" android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules" android:supportsRtl="true" android:usesCleartextTraffic="false">
+        <activity android:name=".ui.MainActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity>
+        <activity android:name=".ui.WidgetConfigureActivity" android:exported="true" android:excludeFromRecents="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/></intent-filter>
+        </activity>
+        <service android:name=".media.MediaListener" android:label="Widget Lab media access" android:exported="true" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
+        </service>
+        <receiver android:name=".widgets.WidgetActionReceiver" android:exported="false" />
+        <receiver android:name=".widgets.PinReceiver" android:exported="false" />
+        <receiver android:name=".widgets.SystemReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
+                <action android:name="android.intent.action.TIME_SET"/>
+                <action android:name="android.intent.action.DATE_CHANGED"/>
+                <action android:name="android.intent.action.LOCALE_CHANGED"/>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".widgets.DriverWidget" android:label="Driver spotlight" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_driver" />
+        </receiver>
+        <receiver android:name=".widgets.ConstructorWidget" android:label="Constructor spotlight" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_constructor" />
+        </receiver>
+        <receiver android:name=".widgets.DriverStandingsWidget" android:label="Driver standings" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_driverstandings" />
+        </receiver>
+        <receiver android:name=".widgets.ConstructorStandingsWidget" android:label="Constructor standings" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_constructorstandings" />
+        </receiver>
+        <receiver android:name=".widgets.WeekendWidget" android:label="Race weekend" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_weekend" />
+        </receiver>
+        <receiver android:name=".widgets.CountdownWidget" android:label="Next lights out" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_countdown" />
+        </receiver>
+        <receiver android:name=".widgets.ResultsWidget" android:label="Last chequered flag" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_results" />
+        </receiver>
+        <receiver android:name=".widgets.EditorialWidget" android:label="Editorial player" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_editorial" />
+        </receiver>
+        <receiver android:name=".widgets.GlassWidget" android:label="Soft glass" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_glass" />
+        </receiver>
+        <receiver android:name=".widgets.VinylWidget" android:label="Vinyl deck" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_vinyl" />
+        </receiver>
+        <receiver android:name=".widgets.BrutalistWidget" android:label="Brutalist audio" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_brutalist" />
+        </receiver>
+        <receiver android:name=".widgets.MatrixWidget" android:label="Dot matrix" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_matrix" />
+        </receiver>
+        <receiver android:name=".widgets.CassetteWidget" android:label="Tape study" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_cassette" />
+        </receiver>
+        <receiver android:name=".widgets.CompactWidget" android:label="Now playing mini" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_compact" />
+        </receiver>
+        <receiver android:name=".widgets.ClockWidget" android:label="Editorial clock" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_clock" />
+        </receiver>
+        <receiver android:name=".widgets.DateWidget" android:label="Date essential" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_date" />
+        </receiver>
+        <receiver android:name=".widgets.BatteryWidget" android:label="Charge state" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_battery" />
+        </receiver>
+        <receiver android:name=".widgets.AgendaWidget" android:label="Private agenda" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_agenda" />
+        </receiver>
+        <receiver android:name=".widgets.SwissWidget" android:label="Swiss time study" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_swiss" />
+        </receiver>
+    </application>
+</manifest>

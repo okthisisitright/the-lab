@@ -1,0 +1,21 @@
+<resources>
+<string name="desc_driver">Widget Lab · Driver spotlight. Configure theme and supported options for each instance.</string>
+<string name="desc_constructor">Widget Lab · Constructor spotlight. Configure theme and supported options for each instance.</string>
+<string name="desc_driverstandings">Widget Lab · Driver standings. Configure theme and supported options for each instance.</string>
+<string name="desc_constructorstandings">Widget Lab · Constructor standings. Configure theme and supported options for each instance.</string>
+<string name="desc_weekend">Widget Lab · Race weekend. Configure theme and supported options for each instance.</string>
+<string name="desc_countdown">Widget Lab · Next lights out. Configure theme and supported options for each instance.</string>
+<string name="desc_results">Widget Lab · Last chequered flag. Configure theme and supported options for each instance.</string>
+<string name="desc_editorial">Widget Lab · Editorial player. Configure theme and supported options for each instance.</string>
+<string name="desc_glass">Widget Lab · Soft glass. Configure theme and supported options for each instance.</string>
+<string name="desc_vinyl">Widget Lab · Vinyl deck. Configure theme and supported options for each instance.</string>
+<string name="desc_brutalist">Widget Lab · Brutalist audio. Configure theme and supported options for each instance.</string>
+<string name="desc_matrix">Widget Lab · Dot matrix. Configure theme and supported options for each instance.</string>
+<string name="desc_cassette">Widget Lab · Tape study. Configure theme and supported options for each instance.</string>
+<string name="desc_compact">Widget Lab · Now playing mini. Configure theme and supported options for each instance.</string>
+<string name="desc_clock">Widget Lab · Editorial clock. Configure theme and supported options for each instance.</string>
+<string name="desc_date">Widget Lab · Date essential. Configure theme and supported options for each instance.</string>
+<string name="desc_battery">Widget Lab · Charge state. Configure theme and supported options for each instance.</string>
+<string name="desc_agenda">Widget Lab · Private agenda. Configure theme and supported options for each instance.</string>
+<string name="desc_swiss">Widget Lab · Swiss time study. Configure theme and supported options for each instance.</string>
+</resources>
