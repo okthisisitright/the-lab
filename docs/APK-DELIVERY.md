@@ -26,9 +26,9 @@ The smaller file and shared-downloads path may avoid the large-file timeout, but
 
 ## GitHub status
 
-The local checkout has **no git remote configured**. The existing GitHub CLI request for the authenticated user returns **HTTP 401: Bad credentials**. GitHub is listed as installed by plugin discovery, but this session exposes no callable GitHub connector tools. Therefore no push, workflow dispatch, GitHub artifact upload or release upload has been completed. There is no existing run/artifact URL to report.
+GitHub authorization was reconnected successfully as **okthisisitright**. The local checkout still has **no git remote configured** and no Widget Lab repository exists in the accessible account. Creating the requested private `okthisisitright/widget-lab` repository was attempted through both GitHub CLI/GraphQL and the REST API. GitHub rejected creation with insufficient-permissions / **HTTP 403: Resource not accessible by integration**. No repository was created.
 
-A repository URL and restored GitHub authorization are needed to publish from this workspace. Do not paste tokens into chat. Reconnect GitHub through the environment/app connection settings.
+The user must create the empty private repository at https://github.com/new and grant the connection access to it, or provide another appropriate repository URL. Chat authorization does not expand the GitHub integration’s API permissions. No push, workflow dispatch, GitHub artifact upload or release upload has completed yet; no run/artifact URL exists yet. Do not paste tokens into chat.
 
 ## Build and download through Actions
 
@@ -85,4 +85,4 @@ gh release create widget-lab-0.1.0-test \
   --notes 'Existing optimized APK, development-signed. No new application build.'
 ```
 
-Then use the repository’s **Releases → Widget Lab 0.1.0 device test → Assets → WidgetLab-0.1.0-small.apk** from a signed-in phone browser. This downloads an APK directly, without the Codex viewer or an artifact ZIP. This command has **not** been executed in this session because repository/authentication access is missing. No APK was sent to an unrelated public file host.
+Then use the repository’s **Releases → Widget Lab 0.1.0 device test → Assets → WidgetLab-0.1.0-small.apk** from a signed-in phone browser. This downloads an APK directly, without the Codex viewer or an artifact ZIP. This command has **not** been executed in this session because a target repository with write access is not yet available. No APK was sent to an unrelated public file host.
