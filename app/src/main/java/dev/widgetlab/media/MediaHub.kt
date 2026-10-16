@@ -66,7 +66,11 @@ object MediaHub {
         snapshots = controllers.map { c ->
             val m = c.metadata; val s = c.playbackState; val actions = s?.actions ?: 0
             val art = m?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: m?.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: m?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-            val small = art?.let { if (it.width > 512 || it.height > 512) { val ratio = 512f / maxOf(it.width, it.height); Bitmap.createScaledBitmap(it, (it.width * ratio).toInt().coerceAtLeast(1), (it.height * ratio).toInt().coerceAtLeast(1), true) } else it }
+            val small = runCatching { art?.let { original ->
+                // Canvas widget layers use software bitmaps, including artwork supplied by hardware-backed loaders.
+                val image=if(original.config==Bitmap.Config.HARDWARE)original.copy(Bitmap.Config.ARGB_8888,false) else original
+                image?.let{if(it.width>512||it.height>512){val ratio=512f/maxOf(it.width,it.height);Bitmap.createScaledBitmap(it,(it.width*ratio).toInt().coerceAtLeast(1),(it.height*ratio).toInt().coerceAtLeast(1),true)} else it}
+            } }.getOrNull()
             val playing = s?.state == PlaybackState.STATE_PLAYING || s?.state == PlaybackState.STATE_BUFFERING
             val toggleAction = if (playing) PlaybackState.ACTION_PAUSE else PlaybackState.ACTION_PLAY
             MediaInfo(m?.getString(MediaMetadata.METADATA_KEY_TITLE)?.ifBlank { "Untitled track" } ?: "Untitled track", m?.getString(MediaMetadata.METADATA_KEY_ARTIST)?.ifBlank { "Unknown artist" } ?: "Unknown artist", small, playing,

@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -193,9 +194,10 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
         decoder.setTargetSize((info.size.width*scale).toInt().coerceAtLeast(1),(info.size.height*scale).toInt().coerceAtLeast(1))
         decoder.allocator=ImageDecoder.ALLOCATOR_SOFTWARE
     }
-    val name="${UUID.randomUUID()}.jpg"
+    val preserveAlpha=bitmap.hasAlpha()
+    val name="${UUID.randomUUID()}.${if(preserveAlpha)"png" else "jpg"}"
     val file=File(context.filesDir,"art/$name").apply{parentFile?.mkdirs()}
-    file.outputStream().use{check(bitmap.compress(Bitmap.CompressFormat.JPEG,90,it))}
+    file.outputStream().use{check(bitmap.compress(if(preserveAlpha)Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,90,it))}
     bitmap.recycle();name
 }
 
@@ -225,7 +227,8 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     val live=data?.copy(media=if(config.kind.isMusic)MediaHub.info(config.selection) else data.media)
     val sampleMusic=config.kind.isMusic&&live?.let{PreviewSamples.music(it)}==true
     val samplePhoto=PreviewSamples.photo(config)
-    val bitmap by produceState<Bitmap?>(null,config.json(),data,shape){if(live!=null)value=withContext(Dispatchers.Default){WidgetRenderer(context).render(PreviewSamples.config(config),PreviewSamples.data(context,config,live),630,(630/ratio).toInt())}}
+    val sampleApps=config.kind.hasApps&&config.apps.isEmpty()
+    val bitmap by produceState<Bitmap?>(null,config.json(),data,shape){if(live!=null)value=withContext(Dispatchers.Default){WidgetRenderer(context).render(PreviewSamples.applications(context,PreviewSamples.config(config)),PreviewSamples.data(context,config,live),630,(630/ratio).toInt())}}
     val transparent=config.surface in listOf("transparent","outline","semi","tint","glass")
     Column(modifier){
         Box(Modifier.fillMaxWidth().aspectRatio(ratio).clipToBounds().background(if(transparent)when(wallpaper){1->Color(0xFFD4CDBE);2->Color(0xFF493C35);else->Color(0xFF34454A)} else Color.Transparent)){
@@ -235,7 +238,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
             }
             bitmap?.let{Image(it.asImageBitmap(),"${config.kind.title} actual renderer preview",Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)}
         }
-        if(sampleMusic||samplePhoto)Eyebrow(if(sampleMusic)"ART STUDY / CONNECT A PLAYER FOR YOUR MUSIC" else "NASA PHOTO STUDY / CHOOSE YOUR OWN IMAGES",Modifier.padding(top=8.dp),Soft)
+        if(sampleMusic||samplePhoto||sampleApps)Eyebrow(if(sampleApps)"APP STUDY / CHOOSE YOUR SHORTCUTS" else if(sampleMusic)"ART STUDY / CONNECT A PLAYER FOR YOUR MUSIC" else "NASA PHOTO STUDY / CHOOSE YOUR OWN IMAGES",Modifier.padding(top=8.dp),Soft)
     }
 }
 
@@ -252,7 +255,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                     BoxWithConstraints(Modifier.weight(1f)){
                         val context=LocalContext.current
                         val widthPerSp=remember{android.graphics.Paint().apply{typeface=LabType.face(context,"condensed",650);textSize=100f}.measureText("COLLECTION")/100f}
-                        val headingSize=(maxWidth.value/widthPerSp*.94f).toInt().coerceAtMost(67)
+                        val headingSize=(maxWidth.value/widthPerSp/LocalDensity.current.fontScale*.94f).toInt().coerceAtMost(67)
                         Heading("THE\nCOLLECTION",headingSize)
                     }
                     Text("50",Modifier.padding(start=6.dp),fontFamily=Serif,fontSize=70.sp,color=Lime,textAlign=androidx.compose.ui.text.style.TextAlign.End)
@@ -362,7 +365,10 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
             }}
             if(cfg.kind.hasAgenda){item{Rule();Eyebrow("PRIVATE DEVICE CALENDAR");Text("Upcoming events remain on your device. Granting access is optional; permission-denied and empty-calendar states are explicit.",color=Soft,fontSize=12.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp));Action(if(data?.agenda?.permitted==true)"Calendar access granted" else "Allow read-only calendar access",onCalendar)}}
             if(cfg.kind.hasLabel){item{Rule();Field("SECTION NAME",cfg.label){onChange(cfg.copy(label=it.take(60)))};if(cfg.kind!=WidgetKind.LAUNCHER)Field("SUPPORTING LABEL",cfg.caption){onChange(cfg.copy(caption=it.take(120)))}}}
-            if(cfg.kind.hasApps){item{Rule();OptionRow("APPLICATION SHORTCUTS","${cfg.apps.size} selected / choose up to 6"){picker="apps"};Text("These are widget shortcuts, not native launcher folders. Missing or uninstalled applications open configuration.",color=Soft,fontSize=11.sp,lineHeight=18.sp)}}
+            if(cfg.kind.hasApps){item{Rule();OptionRow("APPLICATION SHORTCUTS","${cfg.apps.size} selected / choose up to 6"){picker="apps"}
+                ChoiceRow("ICONS",listOf("original" to "Original","mono" to "Monochrome","letters" to "Initials"),cfg.iconStyle){onChange(cfg.copy(iconStyle=it))}
+                ChoiceRow("APP NAMES",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showLabels)"yes" else "no"){onChange(cfg.copy(showLabels=it=="yes"))}
+                Text("These are widget shortcuts, not native launcher folders. Missing or uninstalled applications open configuration.",color=Soft,fontSize=11.sp,lineHeight=18.sp,modifier=Modifier.padding(top=12.dp))}}
             if(cfg.kind.isRacing){item{
                 Rule();Eyebrow("RACING SOURCE",color=Lime)
                 Text("Jolpica / public Formula 1 snapshots. Each feed has independent timestamps and offline caching. Historical samples are labeled; no statistics are fabricated.",color=Soft,fontSize=12.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp))
@@ -388,7 +394,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
         val choices=when(picker){
             "competitor"->listOf("" to "First in cached standings")+(if(cfg.kind==WidgetKind.CONSTRUCTOR)data?.racing?.teams?.value?.entries?.map{it.id to "${it.name} / ${data.racing.teams.value.season}"} else data?.racing?.drivers?.value?.entries?.map{it.id to "${it.name} / ${data.racing.drivers.value.season}"}).orEmpty()
             "media"->listOf("" to "Automatic")+MediaHub.apps().map{it to appLabel(context,it)}
-            "apps"->availableApps.map{it.component to it.label}
+            "apps"->cfg.apps.filter{component->availableApps.none{it.component==component}}.map{it to "Unavailable / ${ComponentName.unflattenFromString(it)?.packageName ?: "remove selection"}"}+availableApps.map{it.component to it.label}
             else->listOf("device" to "Device timezone")+java.time.ZoneId.getAvailableZoneIds().sorted().map{it to it.replace('_',' ')}
         }.filter{it.second.contains(filter,true)}
         AlertDialog(onDismissRequest={picker=null},title={Text(if(picker=="apps")"Choose applications" else "Select ${picker}",fontFamily=Serif)},text={Column{

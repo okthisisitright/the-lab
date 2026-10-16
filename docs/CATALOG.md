@@ -50,9 +50,9 @@ Every row corresponds to a registered Android AppWidgetProvider. Launcher cell s
 | 44 | Date / agenda | 2 × 2–4 × 4 | A native date display with optional upcoming local calendar events. | theme / typography, surface, accent, calendar permission / timezone |
 | 45 | Today / briefing | 3 × 2–4 × 4 | Native time, date and a private calendar briefing. | theme / typography, surface, accent, calendar permission / timezone |
 | 46 | Label / folder | 2 × 1–4 × 2 | A configurable typographic folder label. This does not create a native launcher folder. | theme / typography, transparency, label / caption |
-| 47 | Launch / strip | 3 × 1–4 × 2 | A transparent row of chosen installed applications with real launch targets. | theme / typography, transparency, app activities (up to 6) |
-| 48 | Launch / editorial | 3 × 2–4 × 3 | A large section name and a grid of chosen application shortcuts. | theme / typography, transparency, app activities (up to 6) |
-| 49 | Launch / index | 2 × 2–4 × 4 | A deliberately spaced icon grid with configurable captions. | theme / typography, transparency, app activities (up to 6) |
+| 47 | Launch / strip | 3 × 1–4 × 2 | A transparent row of chosen installed applications with real launch targets. | theme / typography, transparency, apps / icon style / name visibility |
+| 48 | Launch / editorial | 3 × 2–4 × 3 | A large section name and a grid of chosen application shortcuts. | theme / typography, transparency, apps / icon style / name visibility |
+| 49 | Launch / index | 2 × 2–4 × 4 | A deliberately spaced icon grid with configurable captions. | theme / typography, transparency, apps / icon style / name visibility |
 | 50 | Label / section | 2 × 1–4 × 2 | A compact editorial divider with a customizable section heading. | theme / typography, transparency, label / caption |
 
 Controls are restricted in the configuration UI where a fixed artwork/frame treatment applies. AnalogClock uses the device timezone on Android 10–11. No clock promises bitmap updates every second. Multi-image collage uses the first three selected images; filmstrip uses up to four according to width. Small launcher layouts reveal additional selections after expansion.

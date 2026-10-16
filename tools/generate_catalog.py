@@ -12,7 +12,7 @@ provider='package dev.widgetlab.widgets\n\nimport dev.widgetlab.core.WidgetKind\
 manifest=(app/'AndroidManifest.xml').read_text(); manifest=manifest[:manifest.index('        <receiver android:name=".widgets.DriverWidget"')]
 from xml.sax.saxutils import escape
 for key,title,col,size,height,desc in items:
-    name=key.lower().replace('_',''); compact=key in ['COMPACT','STRIP','LABEL','SECTION','CORNER','BATTERY','FOCUS']
+    name=key.lower().replace('_',''); compact=key in ['COMPACT','STRIP','LABEL','SECTION','CORNER','BATTERY','FOCUS','FILMSTRIP','COUNTDOWN']
     minw=110 if col in ['CLOCKS','PHOTO'] or key in ['BATTERY','LABEL','SECTION','GRID'] else 180
     minh=54 if compact or col=='CLOCKS' and key not in ['ANALOG','VERTICAL','SPLIT','BRUTAL_CLOCK'] else 110
     if key=='VERTICAL':minh=210
@@ -93,7 +93,7 @@ for index,(key,title,col,size,height,desc) in enumerate(items,1):
     if col=='PHOTO':options+=['corners' if key in ['PHOTO','FRAME'] else 'multi-image layout' if key in ['COLLAGE','FILMSTRIP'] else 'caption']
     if key=='FRAME':options+=['caption','frame theme']
     if col=='ESSENTIALS':options+=['surface','accent','calendar permission / timezone' if key in ['DATE','TODAY'] else 'actual device status']
-    if col=='LAUNCHERS':options+=['transparency','app activities (up to 6)' if key in ['STRIP','LAUNCHER','GRID'] else 'label / caption']
+    if col=='LAUNCHERS':options+=['transparency','apps / icon style / name visibility' if key in ['STRIP','LAUNCHER','GRID'] else 'label / caption']
     lines.append(f'| {index:02} | {title} | {size} | {desc} | {", ".join(options)} |')
 lines+=['','Controls are restricted in the configuration UI where a fixed artwork/frame treatment applies. AnalogClock uses the device timezone on Android 10–11. No clock promises bitmap updates every second. Multi-image collage uses the first three selected images; filmstrip uses up to four according to width. Small launcher layouts reveal additional selections after expansion.','', 'Gallery and picker previews use the same renderer. NASA photographic/cover studies are explicitly sample content; installed widgets require real media sessions or chosen personal photos.']
 (root/'docs/CATALOG.md').write_text('\n'.join(lines)+'\n')

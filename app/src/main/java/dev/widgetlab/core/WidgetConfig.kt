@@ -28,7 +28,9 @@ data class WidgetConfig(
     val images: List<String> = emptyList(),
     val apps: List<String> = emptyList(),
     val corners: Int = 24,
-    val accentText: Boolean = false
+    val accentText: Boolean = false,
+    val iconStyle: String = if(kind==WidgetKind.GRID)"mono" else if(kind==WidgetKind.LAUNCHER)"letters" else "original",
+    val showLabels: Boolean = true
 ) {
     fun zone(): ZoneId = zone(timezone)
     fun secondZone(): ZoneId = zone(secondaryZone)
@@ -39,7 +41,7 @@ data class WidgetConfig(
         .put("image",image).put("crop",crop).put("typography",typography).put("surface",surface)
         .put("secondaryZone",secondaryZone).put("showDate",showDate).put("showWeekday",showWeekday)
         .put("alignment",alignment).put("caption",caption).put("label",label).put("corners",corners)
-        .put("accentText",accentText).put("images",org.json.JSONArray(images)).put("apps",org.json.JSONArray(apps)).toString()
+        .put("iconStyle",iconStyle).put("showLabels",showLabels).put("accentText",accentText).put("images",org.json.JSONArray(images)).put("apps",org.json.JSONArray(apps)).toString()
     companion object {
         fun parse(value: String?, fallback: WidgetKind): WidgetConfig = runCatching {
             val j=JSONObject(value ?: "{}"); val old=j.optString("kind")
@@ -55,7 +57,8 @@ data class WidgetConfig(
                 surface=j.optString("surface",defaults.surface).takeIf{it in listOf("transparent","solid","tint","glass","outline","semi")} ?: defaults.surface,
                 secondaryZone=j.optString("secondaryZone","Europe/London"),showDate=j.optBoolean("showDate",true),showWeekday=j.optBoolean("showWeekday",true),
                 alignment=j.optString("alignment","design"),caption=j.optString("caption").take(120),label=j.optString("label",defaults.label).take(60),
-                images=list("images"),apps=list("apps"),corners=j.optInt("corners",24).coerceIn(0,40),accentText=j.optBoolean("accentText",false))
+                images=list("images"),apps=list("apps"),corners=j.optInt("corners",24).coerceIn(0,40),accentText=j.optBoolean("accentText",false),
+                iconStyle=j.optString("iconStyle",defaults.iconStyle).takeIf{it in listOf("original","mono","letters")} ?: defaults.iconStyle,showLabels=j.optBoolean("showLabels",true))
         }.getOrDefault(WidgetConfig(fallback))
     }
 }
@@ -91,4 +94,4 @@ class ConfigStore(context: Context) {
         .take(4).map { WidgetConfig.parse(prefs.getString(it, null), WidgetKind.CLOCK) }
 }
 
-fun Context.artFile(name: String): File? = name.takeIf { it.matches(Regex("[a-f0-9-]+\\.jpg")) }?.let { File(filesDir, "art/$it") }
+fun Context.artFile(name: String): File? = name.takeIf { it.matches(Regex("[a-f0-9-]+\\.(jpg|png)")) }?.let { File(filesDir, "art/$it") }

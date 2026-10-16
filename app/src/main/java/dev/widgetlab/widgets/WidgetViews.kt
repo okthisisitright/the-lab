@@ -50,7 +50,7 @@ object WidgetViews {
         if(cfg.kind.isClock||cfg.kind.hasAgenda){
             if(cfg.kind==WidgetKind.ANALOG){
                 views.setViewVisibility(R.id.analog,View.VISIBLE)
-                if(Build.VERSION.SDK_INT>=31)views.setString(R.id.analog,"setTimeZone",cfg.zone().id)
+                if(Build.VERSION.SDK_INT>=31)views.setString(R.id.analog,"setTimeZone",if(cfg.timezone=="device")null else cfg.zone().id)
                 views.setOnClickPendingIntent(R.id.analog,configure)
                 views.setContentDescription(R.id.analog,"Analog clock, ${if(Build.VERSION.SDK_INT>=31)cfg.zone().id else "device timezone"}")
             }else{
@@ -64,7 +64,8 @@ object WidgetViews {
                     val alignment=t.alignment.takeIf{it in listOf("start","center","end")} ?: "start"
                     val childId=context.resources.getIdentifier("tick_${t.face}_${t.weight}_$alignment","layout",context.packageName)
                     val child=RemoteViews(context.packageName,childId.takeIf{it!=0} ?: R.layout.tick_sans_500_start)
-                    child.setString(R.id.clock_text,"setTimeZone",t.zone)
+                    val followsDevice=if(t.role=="second")cfg.secondaryZone=="device" else cfg.timezone=="device"
+                    child.setString(R.id.clock_text,"setTimeZone",if(followsDevice)null else t.zone)
                     child.setCharSequence(R.id.clock_text,"setFormat12Hour",t.format);child.setCharSequence(R.id.clock_text,"setFormat24Hour",t.format)
                     val sample=if(t.role in listOf("time","second","minutes"))if(t.format.contains(':'))"23:58" else "88" else data.now.atZone(java.time.ZoneId.of(t.zone)).format(java.time.format.DateTimeFormatter.ofPattern(t.format))
                     val size=ClockDesign.fittedSize(context,t,sample)

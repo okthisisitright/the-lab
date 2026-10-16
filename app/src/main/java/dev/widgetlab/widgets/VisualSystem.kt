@@ -29,28 +29,29 @@ object ClockDesign {
         val date=if(cfg.showWeekday)"EEE, d MMM" else "d MMM yyyy"
         fun item(x:Float,y:Float,width:Float,height:Float,f:String= format,face:String="sans",weight:Int=500,size:Float=82f,align:String="start",zone:String=cfg.zone().id,role:String="time"):ClockText = ClockText(Bounds(x,y,width.coerceAtLeast(1f),height.coerceAtLeast(1f)),f,zone,if(cfg.typography !in listOf("design","editorial"))cfg.typography else face,weight,size,if(cfg.alignment=="design")align else cfg.alignment,role)
         val parts=mutableListOf<ClockText>()
-        val dateH=if(cfg.showDate)22f else 0f
+        val includeDate=cfg.showDate&&h>=82f
+        val dateH=if(includeDate)22f else 0f
         when(k) {
             WidgetKind.VERTICAL,WidgetKind.BRUTAL_CLOCK -> {
                 val top=if(k==WidgetKind.VERTICAL)h*.12f else p
                 val usable=h-top-p-dateH
                 parts+=item(p,top,w-2*p,usable*.5f,if(cfg.hour24)"HH" else "hh","condensed",700,min(140f,w*.66f),"center")
                 parts+=item(p,top+usable*.5f,w-2*p,usable*.5f,"mm","condensed",700,min(140f,w*.66f),"center",role="minutes")
-                if(cfg.showDate)parts+=item(p,h-p-20,w-2*p,20f,date,size=12f,align="center",role="date")
+                if(includeDate)parts+=item(p,h-p-20,w-2*p,20f,date,size=12f,align="center",role="date")
             }
             WidgetKind.DUAL -> {
                 val gap=24f;val col=(w-2*p-gap)/2
                 parts+=item(p,h*.32f,col,h*.38f,face="technical",size=60f)
                 parts+=item(p+col+gap,h*.32f,col,h*.38f,face="technical",size=60f,zone=cfg.secondZone().id,role="second")
-                if(cfg.showDate)parts+=item(p,h*.76f,w-2*p,22f,date,size=11f,role="date")
+                if(includeDate)parts+=item(p,h*.76f,w-2*p,22f,date,size=11f,role="date")
             }
             WidgetKind.SPLIT -> {
-                if(!cfg.showDate){parts+=item(p,p,w-2*p,h-2*p,weight=650,size=86f)}
+                if(!includeDate){parts+=item(p,p,w-2*p,h-2*p,weight=650,size=86f)}
                 else if(w/h>1.2f){parts+=item(p,h*.2f,w*.57f-p,h*.6f,face="sans",weight=650,size=75f)
                     parts+=item(w*.65f,h*.2f,w*.35f-p,h*.36f,"dd","serif",500,58f,role="day")
-                    if(cfg.showDate)parts+=item(w*.65f,h*.58f,w*.35f-p,32f,"MMM EEE",size=11f,role="date")
+                    if(includeDate)parts+=item(w*.65f,h*.58f,w*.35f-p,32f,"MMM EEE",size=11f,role="date")
                 }else{parts+=item(p,p,w-2*p,h*.48f,weight=700,size=75f)
-                    if(cfg.showDate)parts+=item(p,h*.6f,w-2*p,h*.22f,"EEEE, d MMMM",face="serif",size=23f,role="date")}
+                    if(includeDate)parts+=item(p,h*.6f,w-2*p,h*.22f,"EEEE, d MMMM",face="serif",size=23f,role="date")}
             }
             WidgetKind.DATE -> {
                 parts+=item(p,p,w*.42f,h*.43f,"dd","serif",500,92f,role="day")
@@ -58,17 +59,17 @@ object ClockDesign {
             }
             WidgetKind.TODAY -> {
                 parts+=item(p,if(h<180)8f else p,w-2*p,if(h<180)h*.42f else h*.25f,face="sans",weight=650,size=68f)
-                if(cfg.showDate)parts+=item(p,if(h<180)h*.57f else h*.36f,w-2*p,22f,date,size=12f,role="date")
+                if(includeDate)parts+=item(p,if(h<180)h*.57f else h*.36f,w-2*p,22f,date,size=12f,role="date")
             }
             WidgetKind.ANALOG -> Unit
             else -> {
                 val face=when(k){WidgetKind.SERIF->"serif";WidgetKind.CINEMATIC->"condensed";WidgetKind.DIGITAL->"technical";WidgetKind.DOT_CLOCK->"dots";WidgetKind.TERMINAL->"mono";else->"sans"}
                 val weight=when(k){WidgetKind.THIN->200;WidgetKind.SWISS,WidgetKind.BRUTAL_CLOCK->850;WidgetKind.SERIF->450;else->500}
                 val small=k==WidgetKind.CORNER
-                val top=when(k){WidgetKind.SWISS->h*.14f;WidgetKind.TERMINAL->28f;else->p}
+                val top=when(k){WidgetKind.SWISS->h*.14f;WidgetKind.TERMINAL->if(h<90)p else 28f;else->p}
                 val align=if(k in listOf(WidgetKind.THIN,WidgetKind.SERIF,WidgetKind.GLASS_CLOCK))"center" else "start"
                 parts+=item(p,top,w-2*p,(h-top-p-dateH).coerceAtLeast(24f),face=face,weight=weight,size=if(small)40f else if(k==WidgetKind.CINEMATIC)110f else 96f,align=align)
-                if(cfg.showDate)parts+=item(p,h-p-20,w-2*p,20f,date,size=if(small)10f else 12f,align=align,role="date")
+                if(includeDate)parts+=item(p,h-p-20,w-2*p,20f,date,size=if(small)10f else 12f,align=align,role="date")
             }
         }
         return parts
@@ -83,10 +84,10 @@ object ClockDesign {
 
 data class ShortcutPlan(val bounds:Bounds,val columns:Int,val rows:Int)
 fun shortcutPlan(cfg:WidgetConfig,w:Float,h:Float):ShortcutPlan {
-    val p=16f
+    val p=if(h<150)if(cfg.kind==WidgetKind.STRIP)4f else 8f else 16f
     val count=cfg.apps.size.coerceAtLeast(1)
     val columns=when(cfg.kind){WidgetKind.STRIP->count.coerceAtMost(((w-2*p)/44).toInt().coerceIn(1,6));WidgetKind.LAUNCHER->if(w/h>1.7f)4 else 2;else->if(w<200)2 else 3}
-    val top=if(cfg.kind==WidgetKind.LAUNCHER)min(h*.37f,85f) else p
+    val top=if(cfg.kind==WidgetKind.LAUNCHER)if(h<150)44f else min(h*.37f,85f) else p
     val rows=if(cfg.kind==WidgetKind.STRIP)1 else min(ceil(count.toFloat()/columns).toInt(),((h-top-p)/44).toInt().coerceIn(1,3))
     return ShortcutPlan(Bounds(p,top,w-2*p,h-top-p),columns,rows)
 }

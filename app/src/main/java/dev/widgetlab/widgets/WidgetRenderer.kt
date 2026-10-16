@@ -127,6 +127,10 @@ class WidgetRenderer(private val context:Context) {
                 val x=w*.3f
                 text(driver.family.uppercase(),x,h*.46f,min(19f,w*.065f),ink,"condensed",700,textRight-x)
                 label("P${driver.position} / ${driver.points} PTS",x,h*.68f,max=textRight-x)
+                if(!minimal&&cfg.image.isBlank()&&driver.id=="hamilton"){
+                    rect(w*.71f,h-34,w*.29f,16f,0x90000000.toInt())
+                    label("2021",w*.71f+6,h-22,Color.WHITE,w*.29f-12)
+                }
                 footer(s,table.season);return
             }
             if(minimal){
@@ -152,6 +156,15 @@ class WidgetRenderer(private val context:Context) {
                 text(driver.given,pad,h*.58f,min(18f,h*.08f),max=w*.43f-pad)
                 fit(driver.family.uppercase(),pad,h*.72f,29f,w*.43f-pad,ink,"condensed")
                 label("P${driver.position} / ${driver.points} PTS",pad,h-42,max=w*.44f-pad)
+            }
+            if(cfg.image.isBlank()&&driver.id=="hamilton"){
+                if(minimal)label("2021 ARCHIVE",w*.65f,h*.59f,muted,w*.35f-pad)
+                else{
+                    val x=if(tall)0f else w*.48f
+                    val bottom=if(tall)h*.55f else h-31f
+                    rect(x,bottom-18,w-x,18f,0x90000000.toInt())
+                    label("2021 ARCHIVE",x+10,bottom-6,Color.WHITE,w-x-20)
+                }
             }
             if(!minimal) {val name=d.racing.teams.value.entries.find{it.id==team}?.name ?: team;label(name,pad,h-24,muted,inner)}
             footer(s,table.season)
@@ -445,14 +458,14 @@ class WidgetRenderer(private val context:Context) {
         fun clock(){
             val k=cfg.kind
             when(k){
-                WidgetKind.SWISS->{rect(pad,14f,26f,4f,accent);label("LOCAL TIME",w-pad-78,21f,max=78f)}
-                WidgetKind.CINEMATIC->{line(pad,13f,w-pad,13f);label("THE PRESENT",pad,h-8,max=inner)}
-                WidgetKind.BRUTAL_CLOCK->{rect(0f,h*.49f,w,2f,accent);label("H",w-pad-9,pad+8,max=10f);label("M",w-pad-9,h*.55f,max=10f)}
+                WidgetKind.SWISS->{if(h>=90){rect(pad,14f,26f,4f,accent);label("LOCAL TIME",w-pad-78,21f,max=78f)}}
+                WidgetKind.CINEMATIC->{if(h>=90){line(pad,13f,w-pad,13f);label("THE PRESENT",pad,h-8,max=inner)}}
+                WidgetKind.BRUTAL_CLOCK->{val split=ClockDesign.plan(cfg,w,h).getOrNull(1)?.bounds?.y ?: h*.5f;rect(0f,split,w,2f,accent);label("H",w-pad-9,pad+8,max=10f);label("M",w-pad-9,split+8,max=10f)}
                 WidgetKind.ANALOG->{circle(w/2,h/2,5f,accent)}
-                WidgetKind.SPLIT->{if(cfg.showDate&&w/h>1.2f)line(w*.62f,pad,w*.62f,h-pad) else if(cfg.showDate)line(pad,h*.54f,w-pad,h*.54f)}
+                WidgetKind.SPLIT->{if(cfg.showDate&&h>=82&&w/h>1.2f)line(w*.62f,pad,w*.62f,h-pad) else if(cfg.showDate&&h>=82)line(pad,h*.54f,w-pad,h*.54f)}
                 WidgetKind.DUAL->{line(w*.5f,pad,w*.5f,h-pad);label(zoneLabel(cfg.timezone),pad,h*.23f,max=w*.44f-pad);label(zoneLabel(cfg.secondaryZone),w*.54f,h*.23f,max=w*.46f-pad)}
-                WidgetKind.TERMINAL->{label("> TIME / ${zoneLabel(cfg.timezone)}",color=accent);line(pad,33f,w-pad,33f);rect(w-pad-6,h-pad-6,6f,6f,accent)}
-                WidgetKind.SERIF->{line(w*.4f,16f,w*.6f,16f,accent)}
+                WidgetKind.TERMINAL->{if(h>=90){label("> TIME / ${zoneLabel(cfg.timezone)}",color=accent);line(pad,33f,w-pad,33f);rect(w-pad-6,h-pad-6,6f,6f,accent)}}
+                WidgetKind.SERIF->{if(h>=90)line(w*.4f,16f,w*.6f,16f,accent)}
                 else->Unit
             }
             if(!preview)return
@@ -486,8 +499,10 @@ class WidgetRenderer(private val context:Context) {
                 WidgetKind.FILMSTRIP->{
                     rect(0f,0f,w,h,0xFF111315.toInt());val count=files.size.coerceIn(2,4);val margin=14f;val gap=6f
                     val cell=(w-2*margin-(count-1)*gap)/count
-                    for(i in 0 until count)imageAt(i,Bounds(margin+i*(cell+gap),20f,cell,h-40))
-                    for(i in 0..(w/17).toInt()){rect(i*17f+4,5f,8f,7f,0xFFB6B9B2.toInt(),1.5f);rect(i*17f+4,h-12f,8f,7f,0xFFB6B9B2.toInt(),1.5f)}
+                    val border=if(h<100)10f else 20f
+                    for(i in 0 until count)imageAt(i,Bounds(margin+i*(cell+gap),border,cell,h-2*border))
+                    val hole=if(h<100)4f else 7f;val edge=if(h<100)2f else 5f
+                    for(i in 0..(w/17).toInt()){rect(i*17f+4,edge,8f,hole,0xFFB6B9B2.toInt(),1.5f);rect(i*17f+4,h-edge-hole,8f,hole,0xFFB6B9B2.toInt(),1.5f)}
                 }
                 WidgetKind.COLLAGE->{
                     val gap=5f
@@ -528,9 +543,9 @@ class WidgetRenderer(private val context:Context) {
         }}
         fun battery(){val percent=d.battery.percent;val fraction=(percent ?: 0)/100f
             if(cfg.kind==WidgetKind.BATTERY){
-                fit("${percent ?: "—"}%",pad,h*.65f,min(72f,h*.52f),inner*.68f,ink,"sans",300)
+                fit("${percent ?: "—"}%",pad,h*if(h<80).60f else .65f,min(72f,h*if(h<80).42f else .52f),min(inner*.68f,inner-49),ink,"sans",300)
                 val x=w-pad-39;val y=h*.36f;rect(x,y,34f,17f,if(cfg.light)0x20202020 else 0x30FFFFFF,3f);rect(x+3,y+3,28*fraction,11f,accent,1f);rect(x+35,y+5,2f,7f,muted)
-                label(if(d.battery.charging)"CHARGING" else "ON BATTERY",pad,h-12)
+                label(if(d.battery.charging)"CHARGING" else "ON BATTERY",pad,h-if(h<80)8f else 12f)
             }else{
                 if(compact){
                     label("ENERGY / RESERVE",pad,18f)
@@ -557,17 +572,37 @@ class WidgetRenderer(private val context:Context) {
                 WidgetKind.LABEL->{fit(cfg.label,pad,h*.61f,min(48f,h*.46f),inner,if(cfg.accentText)accentTextColor(cfg) else ink,"serif",500);label("${cfg.caption}",pad,h-12,max=inner)}
                 WidgetKind.SECTION->{label(cfg.caption.ifBlank{"01 / PERSONAL"},pad,pad+2);fit(cfg.label.uppercase(),pad,h*.69f,min(26f,h*.3f),inner,if(cfg.accentText)accentTextColor(cfg) else ink,"condensed");line(pad,h-12,w-pad,h-12,accent,1.5f)}
                 else->{
-                    if(cfg.kind==WidgetKind.LAUNCHER){fit(cfg.label,pad,40f,32f,inner,if(cfg.accentText)accentTextColor(cfg) else ink,"serif",500);line(pad,54f,w-pad,54f)}
+                    if(cfg.kind==WidgetKind.LAUNCHER){fit(cfg.label,pad,if(h<150)28f else 40f,if(h<150)20f else 32f,inner,if(cfg.accentText)accentTextColor(cfg) else ink,"serif",500);line(pad,if(h<150)36f else 54f,w-pad,if(h<150)36f else 54f)}
                     if(cfg.apps.isEmpty()){text("Choose your applications",pad,h*.65f,17f,ink,"sans",500,inner);return}
                     val plan=shortcutPlan(cfg,w,h);val b=plan.bounds;val cellW=b.w/plan.columns;val cellH=b.h/plan.rows
                     cfg.apps.take(plan.columns*plan.rows).forEachIndexed{i,component->
                         val x=b.x+i%plan.columns*cellW;val y=b.y+i/plan.columns*cellH
-                        val icon=LaunchApps.icon(context,component);val size=min(38f,min(cellW-12,cellH-22));val left=x+(cellW-size)/2;val top=y+max(0f,(cellH-size-18)/2)
-                        if(icon!=null){c.save();c.translate(left,top);icon.setBounds(0,0,size.toInt(),size.toInt());icon.draw(c);c.restore()}
-                        else{circle(x+cellW/2,top+size/2,size/2,ruleColor);text("?",x+cellW/2-4,top+size*.7f,18f)}
-                        val name=LaunchApps.label(context,component);p.typeface=LabType.face(context,"sans");p.textSize=9f
-                        val width=p.measureText(name).coerceAtMost(cellW-6)
-                        text(name,x+(cellW-width)/2,top+size+14,9f,muted,max=cellW-6)
+                        val icon=LaunchApps.icon(context,component)
+                        val name=LaunchApps.label(context,component)
+                        val labelH=if(cfg.showLabels)18f else 0f
+                        val size=min(38f,min(cellW-12,cellH-labelH-4)).coerceAtLeast(12f)
+                        val left=x+(cellW-size)/2;val top=y+max(0f,(cellH-size-labelH)/2)
+                        if(cfg.iconStyle=="letters"){
+                            circle(x+cellW/2,top+size/2,size/2,ruleColor,1f)
+                            val letter=name.take(1).uppercase(Locale.getDefault())
+                            p.typeface=LabType.face(context,"serif",500);p.textSize=size*.66f
+                            val letterWidth=p.measureText(letter)
+                            text(letter,x+(cellW-letterWidth)/2,top+size*.74f,size*.66f,if(cfg.accentText)accentTextColor(cfg) else ink,"serif",500,size)
+                        }else if(icon!=null){
+                            c.save()
+                            if(cfg.iconStyle=="mono"){
+                                val gray=Paint(Paint.ANTI_ALIAS_FLAG).apply{colorFilter=ColorMatrixColorFilter(ColorMatrix().apply{setSaturation(0f)})}
+                                c.saveLayer(RectF(left,top,left+size,top+size),gray)
+                            }
+                            c.translate(left,top);icon.setBounds(0,0,size.toInt(),size.toInt());icon.draw(c)
+                            if(cfg.iconStyle=="mono")c.restore()
+                            c.restore()
+                        }else{circle(x+cellW/2,top+size/2,size/2,ruleColor);text("?",x+cellW/2-4,top+size*.7f,18f)}
+                        if(cfg.showLabels){
+                            p.typeface=LabType.face(context,"sans");p.textSize=9f
+                            val width=p.measureText(name).coerceAtMost(cellW-6)
+                            text(name,x+(cellW-width)/2,top+size+14,9f,muted,max=cellW-6)
+                        }
                     }
                 }
             }

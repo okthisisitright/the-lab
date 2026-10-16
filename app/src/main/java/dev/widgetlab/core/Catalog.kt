@@ -70,5 +70,5 @@ enum class WidgetKind(val title: String, val collection: Collection, val size: S
     val hasLabel get() = this==LABEL || this==SECTION || this==LAUNCHER
     val hasPortrait get() = this==DRIVER || this==MINIMAL_DRIVER || this==CONSTRUCTOR
     val defaultLight get() = this in setOf(MINIMAL_DRIVER,WEEKEND,VINYL,POLAROID,FRAME)
-    val transparentDefault get() = (isClock && this !in setOf(GLASS_CLOCK,BRUTAL_CLOCK,TERMINAL)) || this in setOf(BATTERY,FOCUS,LABEL,SECTION,STRIP,GRID)
+    val transparentDefault get() = (isClock && this !in setOf(GLASS_CLOCK,BRUTAL_CLOCK,TERMINAL)) || this in setOf(PHOTO,BATTERY,FOCUS,LABEL,SECTION,STRIP,GRID)
 }

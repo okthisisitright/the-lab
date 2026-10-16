@@ -99,7 +99,7 @@ class WidgetRuntimeTest {
             val paint=Paint().apply{color=Color.WHITE;textSize=14f}
             kinds.forEachIndexed{i,k->
                 val cfg=WidgetConfig(k)
-                val bitmap=renderer.render(dev.widgetlab.ui.PreviewSamples.config(cfg),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),width=630)
+                val bitmap=renderer.render(dev.widgetlab.ui.PreviewSamples.applications(context,dev.widgetlab.ui.PreviewSamples.config(cfg)),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),width=630)
                 assertTrue(bitmap.allocationByteCount<=1_680_000)
                 File(dir,"${k.name.lowercase()}.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
                 val picker=Bitmap.createBitmap(bitmap.width,bitmap.height,Bitmap.Config.ARGB_8888)
@@ -107,7 +107,7 @@ class WidgetRuntimeTest {
                 if(cfg.surface!="solid")pickerCanvas.drawColor(Color.rgb(52,69,74))
                 pickerCanvas.drawBitmap(bitmap,0f,0f,null)
                 File(dir,"picker-${k.name.lowercase()}.png").outputStream().use{picker.compress(Bitmap.CompressFormat.PNG,100,it)}
-                val compact=renderer.render(dev.widgetlab.ui.PreviewSamples.config(cfg),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),600,220,true,300f)
+                val compact=renderer.render(dev.widgetlab.ui.PreviewSamples.applications(context,dev.widgetlab.ui.PreviewSamples.config(cfg)),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),600,220,true,300f)
                 File(dir,"compact-${k.name.lowercase()}.png").outputStream().use{compact.compress(Bitmap.CompressFormat.PNG,100,it)}
                 val x=(i%3)*420f;val y=(i/3)*370f
                 c.drawText("${k.ordinal+1} / ${k.title}",x+14,y+25,paint)
@@ -131,7 +131,7 @@ class WidgetRuntimeTest {
         }
     }
     @Test fun clockGeometryStaysInsideBoundsAndDualTimeIsIndependent() {
-        for(kind in WidgetKind.entries.filter{it.isClock})for((w,h)in listOf(110f to 110f,300f to 100f,360f to 440f)){
+        for(kind in WidgetKind.entries.filter{it.isClock})for((w,h)in listOf(110f to 54f,110f to 110f,300f to 100f,360f to 440f)){
             ClockDesign.plan(WidgetConfig(kind),w,h).forEach{t->
                 assertTrue("${kind.name} x",t.bounds.x>=0);assertTrue("${kind.name} width",t.bounds.x+t.bounds.w<=w+.1f)
                 assertTrue("${kind.name} y",t.bounds.y>=0);assertTrue("${kind.name} height",t.bounds.y+t.bounds.h<=h+.1f)
@@ -140,7 +140,7 @@ class WidgetRuntimeTest {
         val config=WidgetConfig(WidgetKind.DUAL,timezone="Asia/Kolkata",secondaryZone="America/New_York")
         val clocks=ClockDesign.plan(config,360f,180f)
         assertEquals("Asia/Kolkata",clocks[0].zone);assertEquals("America/New_York",clocks[1].zone)
-        val profile=config.copy(images=listOf("a.jpg","b.jpg"),apps=listOf("dev.example/.Main"),caption="Quiet mornings",surface="outline",showDate=false,accentText=true)
+        val profile=config.copy(images=listOf("a.jpg","b.jpg"),apps=listOf("dev.example/.Main"),caption="Quiet mornings",surface="outline",showDate=false,accentText=true,iconStyle="mono",showLabels=false)
         assertEquals(profile,WidgetConfig.parse(profile.json(),WidgetKind.CLOCK))
     }
 }
