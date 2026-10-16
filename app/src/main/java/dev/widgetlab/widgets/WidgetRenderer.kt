@@ -261,18 +261,24 @@ class WidgetRenderer(private val context:Context) {
         }
         fun next():Race?=if(d.racing.schedule.sample)d.racing.schedule.value.firstOrNull() else nextRace(d.racing.schedule.value,d.now)
         fun flag(country:String,x:Float,y:Float,size:Float) {
-            val emoji=when(country){"Monaco"->"🇲🇨";"Italy"->"🇮🇹";"UK"->"🇬🇧";"USA"->"🇺🇸";"Japan"->"🇯🇵";"Australia"->"🇦🇺";"Singapore"->"🇸🇬";"Brazil"->"🇧🇷";"Canada"->"🇨🇦";"Spain"->"🇪🇸";"France"->"🇫🇷";"Austria"->"🇦🇹";"Belgium"->"🇧🇪";"Netherlands"->"🇳🇱";"Mexico"->"🇲🇽";"Hungary"->"🇭🇺";else->""}
+            val emoji=when(country){"Monaco"->"🇲🇨";"Italy"->"🇮🇹";"UK"->"🇬🇧";"USA"->"🇺🇸";"Japan"->"🇯🇵";"Australia"->"🇦🇺";"Singapore"->"🇸🇬";"Brazil"->"🇧🇷";"Canada"->"🇨🇦";"Spain"->"🇪🇸";"France"->"🇫🇷";"Austria"->"🇦🇹";"Belgium"->"🇧🇪";"Netherlands"->"🇳🇱";"Mexico"->"🇲🇽";"Hungary"->"🇭🇺";"China"->"🇨🇳";"Bahrain"->"🇧🇭";"Saudi Arabia"->"🇸🇦";"Azerbaijan"->"🇦🇿";"Qatar"->"🇶🇦";"UAE","United Arab Emirates"->"🇦🇪";"Germany"->"🇩🇪";"Portugal"->"🇵🇹";"Turkey"->"🇹🇷";"Malaysia"->"🇲🇾";else->""}
             if(country=="Monaco"){c.save();c.clipPath(Path().apply{addCircle(x+size/2,y+size/2,size/2,Path.Direction.CW)});rect(x,y,size,size/2,0xFFCF1137.toInt());rect(x,y+size/2,size,size/2,Color.WHITE);c.restore()}
             else if(emoji.isNotEmpty())text(emoji,x,y+size,size,ink,max=size*1.5f)
         }
         fun map(race:Race?,b:Bounds,color:Int=muted) {
-            if(race?.circuitId!="monaco") {
+            val path=CircuitOutlines.path(context,race?.circuitId.orEmpty())
+            if(path==null){
                 label("CIRCUIT",b.x,b.y+b.h*.45f,color,b.w)
-                text(race?.circuit ?: "Awaiting schedule",b.x,b.y+b.h*.65f,12f,color,"sans",400,b.w);return
+                text(race?.circuit ?: "Awaiting schedule",b.x,b.y+b.h*.65f,12f,color,"sans",400,b.w)
+                return
             }
-            val pts=floatArrayOf(.02f,.80f,.12f,.41f,.28f,.05f,.46f,.35f,.53f,.46f,.64f,.57f,.72f,.51f,.75f,.29f,.95f,.21f,.91f,.44f,.99f,.46f,.92f,.67f,.73f,.79f,.58f,.73f,.45f,.61f,.32f,.35f,.18f,.57f,.10f,.90f,.02f,.80f)
-            val path=Path();pts.asList().chunked(2).forEachIndexed{i,a->if(i==0)path.moveTo(b.x+a[0]*b.w,b.y+a[1]*b.h) else path.lineTo(b.x+a[0]*b.w,b.y+a[1]*b.h)}
-            p.color=color;p.strokeWidth=2.2f;p.style=Paint.Style.STROKE;p.strokeJoin=Paint.Join.ROUND;c.drawPath(path,p);p.style=Paint.Style.FILL
+            val bounds=RectF();path.computeBounds(bounds,true)
+            if(bounds.width()<=0||bounds.height()<=0)return
+            val matrix=Matrix().apply{setRectToRect(bounds,RectF(b.x+2,b.y+2,b.x+b.w-2,b.y+b.h-2),Matrix.ScaleToFit.CENTER)}
+            path.transform(matrix)
+            p.color=color;p.strokeWidth=1.7f;p.style=Paint.Style.STROKE;p.strokeJoin=Paint.Join.ROUND;p.strokeCap=Paint.Cap.ROUND
+            c.drawPath(path,p)
+            p.style=Paint.Style.FILL;p.strokeCap=Paint.Cap.BUTT
         }
         fun weekend(){
             val race=next();val s=d.racing.schedule

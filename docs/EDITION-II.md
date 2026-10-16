@@ -33,3 +33,8 @@ Music controls target the chosen compatible session and respect published capabi
 VersionCode is incremented to 2. Existing provider class names are retained where their design continues; the previous separate Agenda provider is replaced by Date / agenda and Today / briefing. Re-add an old agenda instance if your launcher removes it. Existing profiles retain their old settings unless edited; a new instance adopts Edition II transparency defaults.
 
 Physical Vivo/Android 15 resize, restart, permission and music-player testing remains necessary even when compilation and automated host tests pass. The catalog, image pipeline, native layouts and multi-size rendering are covered by local/runtime tests; GitHub device tests separately exercise Android's widget host, media session callbacks and studio navigation. Validation results are recorded after execution, not inferred from compilation.
+
+
+## Offline circuit artwork
+
+33 circuit outlines are bundled from a pinned MIT-licensed GeoJSON source, with full attribution/license. All 23 circuit IDs in the verified 2026 Jolpica schedule match the bundled library. Diagrams use a local geographic projection and principal-axis orientation, then uniform scaling into the actual widget bounds. Unknown IDs display the circuit name. No guessed map substitutes for an unknown track; no live telemetry or official survey accuracy is claimed. Regenerate with tools/prepare_circuits.py (optional input GeoJSON and schedule JSON paths).

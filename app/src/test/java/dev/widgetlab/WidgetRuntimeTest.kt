@@ -63,6 +63,20 @@ class WidgetRuntimeTest {
             }
         }
     }
+    @Test fun licensedCircuitPathsAreAvailableOfflineAndUnknownMapsAreNotInvented(){
+        val records=org.json.JSONObject(context.assets.open("circuits/outlines.json").bufferedReader().use{it.readText()})
+        assertEquals("MIT / Tomislav Bacinger",records.getString("license"))
+        val keys=records.getJSONObject("circuits").keys()
+        var count=0
+        while(keys.hasNext()){
+            val path=CircuitOutlines.path(context,keys.next())
+            assertNotNull(path)
+            val bounds=android.graphics.RectF();path!!.computeBounds(bounds,true)
+            assertTrue(bounds.width()>0);assertTrue(bounds.height()>0);count++
+        }
+        assertEquals(33,count)
+        assertNull(CircuitOutlines.path(context,"not_a_known_circuit"))
+    }
     @Test fun allFiftyDesignsHaveGenuineRegisteredProvidersAndConfiguration() {
         val providers=context.packageManager.queryBroadcastReceivers(android.content.Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).setPackage(context.packageName),android.content.pm.PackageManager.GET_META_DATA)
         assertEquals(50,providers.size)
