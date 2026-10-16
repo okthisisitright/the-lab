@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.FrameLayout
+import android.widget.TextClock
 import android.graphics.drawable.BitmapDrawable
 import android.view.Gravity
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -33,6 +34,8 @@ class ReleaseWidgetTest {
         if(view is ImageView && runCatching{view.resources.getResourceEntryName(view.id)}.getOrNull()=="surface")return view
         return if(view is ViewGroup)(0 until view.childCount).firstNotNullOfOrNull{surface(view.getChildAt(it))} else null
     }
+    private fun visibleClocks(view:View):List<TextClock> = if(view is TextClock && view.isShown)listOf(view)
+        else if(view is ViewGroup)(0 until view.childCount).flatMap{visibleClocks(view.getChildAt(it))} else emptyList()
     private fun awaitSurface(view:AppWidgetHostView,label:String) {
         val deadline=System.currentTimeMillis()+15_000
         var rendered=false
@@ -64,14 +67,31 @@ class ReleaseWidgetTest {
                 instrumentation.runOnMainSync{
                     view=host.createView(activity,id,info)
                     activity.container.removeAllViews()
-                    activity.container.addView(view,FrameLayout.LayoutParams((300*density).toInt(),(220*density).toInt(),Gravity.CENTER))
+                    val padding=AppWidgetHostView.getDefaultPaddingForWidget(activity,info.provider,null)
+                    activity.container.addView(view,FrameLayout.LayoutParams((300*density).toInt()+padding.left+padding.right,(220*density).toInt()+padding.top+padding.bottom,Gravity.CENTER))
                 }
                 shell("am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n ${info.provider.flattenToString()} --eia appWidgetIds $id")
                 awaitSurface(view,info.provider.className)
+                val name=info.provider.className.substringAfterLast('.')
+                if(name in setOf("ClockWidget","ThinWidget","SwissWidget","CinematicWidget","GlassClockWidget","BrutalClockWidget","DigitalWidget","DotClockWidget","SplitWidget","VerticalWidget","CornerWidget","DualWidget","SerifWidget","TerminalWidget")){
+                    val deadline=System.currentTimeMillis()+5000
+                    var visible=false
+                    while(!visible&&System.currentTimeMillis()<deadline){
+                        instrumentation.runOnMainSync{visible=visibleClocks(view).any{it.text.isNotBlank()&&it.width>0&&it.height>0}}
+                        if(!visible)Thread.sleep(100)
+                    }
+                    assertTrue("Visible native clock text, not just a transparent bitmap: $name",visible)
+                }
+                val capture=when(name){"ClockWidget"->"clock";"CompactWidget"->"player";"WeekendWidget"->"race";else->null}
+                if(capture!=null)shell("screencap -p /data/local/tmp/widgetlab-release-$capture.png")
                 if(info.provider.className.endsWith("ClockWidget")||info.provider.className.endsWith("CompactWidget")||info.provider.className.endsWith("WeekendWidget")){
                     // A genuine options broadcast, with no direct calls into Widget Lab.
                     val initial=context.packageManager.getResourcesForApplication("dev.widgetlab").getIdentifier("widget_surface","layout","dev.widgetlab")
                     instrumentation.runOnMainSync{view.updateAppWidget(android.widget.RemoteViews("dev.widgetlab",initial))}
+                    instrumentation.runOnMainSync{
+                        val padding=AppWidgetHostView.getDefaultPaddingForWidget(activity,info.provider,null)
+                        view.layoutParams=FrameLayout.LayoutParams((330*density).toInt()+padding.left+padding.right,(140*density).toInt()+padding.top+padding.bottom,Gravity.CENTER)
+                    }
                     manager.updateAppWidgetOptions(id,Bundle().apply {
                         putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,330)
                         putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,330)

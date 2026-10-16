@@ -1,19 +1,9 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/surface" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:contentDescription="Widget Lab" />
-    <FrameLayout android:id="@+id/clock_slot0" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-        <TextClock android:id="@+id/time" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/technical" android:textFontWeight="500" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
-    </FrameLayout>
-    <FrameLayout android:id="@+id/clock_slot1" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-        <TextClock android:id="@+id/clock_second" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/technical" android:textFontWeight="500" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
-    </FrameLayout>
-    <FrameLayout android:id="@+id/clock_slot2" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-        <TextClock android:id="@+id/clock_date" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/inter" android:textFontWeight="400" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
-    </FrameLayout>
-    <FrameLayout android:id="@+id/clock_slot3" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-        <TextClock android:id="@+id/clock_extra" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/inter" android:textFontWeight="400" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
-    </FrameLayout>
-    <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:visibility="gone" android:dial="@drawable/dial_light" android:hand_hour="@drawable/hand_hour_light" android:hand_minute="@drawable/hand_minute_light" />
-    <ImageView android:id="@+id/analog_cap" android:layout_width="12dp" android:layout_height="12dp" android:layout_gravity="center" android:importantForAccessibility="no" android:visibility="gone" />
+    <FrameLayout android:id="@+id/clock_slot0" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />
+    <FrameLayout android:id="@+id/clock_slot1" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />
+    <FrameLayout android:id="@+id/clock_slot2" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />
+    <FrameLayout android:id="@+id/clock_slot3" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />
     <FrameLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
         <FrameLayout android:id="@+id/previous_slot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone"><ImageView android:id="@+id/previous" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:src="@drawable/control_previous" android:contentDescription="previous" /></FrameLayout>
         <FrameLayout android:id="@+id/toggle_slot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone"><ImageView android:id="@+id/toggle" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:src="@drawable/control_play" android:contentDescription="toggle" /></FrameLayout>

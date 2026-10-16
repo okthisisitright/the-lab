@@ -13,14 +13,20 @@ manifest=(app/'AndroidManifest.xml').read_text(); manifest=manifest[:manifest.in
 from xml.sax.saxutils import escape
 for key,title,col,size,height,desc in items:
     name=key.lower().replace('_',''); compact=key in ['COMPACT','STRIP','LABEL','SECTION','CORNER','BATTERY','FOCUS','FILMSTRIP','COUNTDOWN']
-    minw=110 if col in ['CLOCKS','PHOTO'] or key in ['BATTERY','LABEL','SECTION','GRID'] else 180
+    minw=110 if col in ['CLOCKS','PHOTO'] or key in ['BATTERY','LABEL','SECTION','GRID','VINYL','CASSETTE','MATRIX'] else 180
     minh=54 if compact or col=='CLOCKS' and key not in ['ANALOG','VERTICAL','SPLIT','BRUTAL_CLOCK'] else 110
     if key=='VERTICAL':minh=210
     if key=='ANALOG':minh=110
+    basew=110 if minw==110 else 250
+    baseh=max(minh,int(int(height)*(basew/420 if key in ['VINYL','CASSETTE','MATRIX'] else .65)))
+    cellw=2 if minw==110 else 4
+    cellh=1 if compact else 3 if key=='VERTICAL' else 2
+    if key=='MATRIX':baseh=max(270,baseh);cellh=4
+    if key=='EDITORIAL':cellw=3;cellh=3
     xml=f'''<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="{minw if minw==110 else 250}dp" android:minHeight="{max(minh,int(int(height)*.65))}dp"
+    android:minWidth="{basew}dp" android:minHeight="{baseh}dp"
     android:minResizeWidth="{minw}dp" android:minResizeHeight="{minh}dp"
-    android:targetCellWidth="{2 if minw==110 else 4}" android:targetCellHeight="{1 if compact else 3 if key=='VERTICAL' else 2}"
+    android:targetCellWidth="{cellw}" android:targetCellHeight="{cellh}"
     android:updatePeriodMillis="1800000" android:previewImage="@drawable/preview_{name}" android:initialLayout="@layout/widget_surface"
     android:configure="dev.widgetlab.ui.WidgetConfigureActivity"
     android:resizeMode="horizontal|vertical" android:widgetCategory="home_screen"
@@ -46,14 +52,12 @@ for face in ['sans','thin','bold','condensed','serif','technical','mono','dots']
         base='''<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/surface" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:contentDescription="Widget Lab" />
 '''
-        for i,id in enumerate(['time','clock_second','clock_date','clock_extra']):
-            ff=font if i<2 else 'inter'
-            base+=f'''    <FrameLayout android:id="@+id/clock_slot{i}" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-        <TextClock android:id="@+id/{id}" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/{ff}" android:textFontWeight="{weight if i<2 else '400'}" android:textStyle="{style if i<2 else 'normal'}" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
-    </FrameLayout>\n'''
-        base+=f'''    <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:visibility="gone" android:dial="@drawable/dial_{'dark' if light else 'light'}" android:hand_hour="@drawable/hand_hour_{'dark' if light else 'light'}" android:hand_minute="@drawable/hand_minute_{'dark' if light else 'light'}" />
+        for i in range(4):
+            base+=f'    <FrameLayout android:id="@+id/clock_slot{i}" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />\n'
+        analog=f'''    <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:visibility="gone" android:dial="@drawable/dial_{'dark' if light else 'light'}" android:hand_hour="@drawable/hand_hour_{'dark' if light else 'light'}" android:hand_minute="@drawable/hand_minute_{'dark' if light else 'light'}" />
     <ImageView android:id="@+id/analog_cap" android:layout_width="12dp" android:layout_height="12dp" android:layout_gravity="center" android:importantForAccessibility="no" android:visibility="gone" />
-    <FrameLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+'''
+        base+='''    <FrameLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
 '''
         for id in ['previous','toggle','next']:
             base+=f'        <FrameLayout android:id="@+id/{id}_slot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone"><ImageView android:id="@+id/{id}" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:src="@drawable/control_{"play" if id=="toggle" else id}" android:contentDescription="{id}" /></FrameLayout>\n'
@@ -61,7 +65,19 @@ for face in ['sans','thin','bold','condensed','serif','technical','mono','dots']
     <LinearLayout android:id="@+id/shortcut_host" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone" />
 </FrameLayout>\n'''
         (app/f'res/layout/surface_{face}_{"light" if light else "dark"}.xml').write_text(base)
-        if face=='sans' and not light:(app/'res/layout/widget_surface.xml').write_text(base)
+        if face=='sans':
+            import xml.etree.ElementTree as ET
+            ns='{http://schemas.android.com/apk/res/android}'
+            pure=ET.fromstring(base)
+            for node in list(pure):
+                if 'clock_slot' in node.get(ns+'id',''):pure.remove(node)
+            ET.register_namespace('android','http://schemas.android.com/apk/res/android')
+            if not light:(app/'res/layout/widget_surface.xml').write_text(ET.tostring(pure,encoding='unicode'))
+            native=ET.fromstring(base)
+            for node in list(native):
+                if node.get(ns+'id','')!='@+id/surface':native.remove(node)
+            native.extend(list(ET.fromstring('<root xmlns:android="http://schemas.android.com/apk/res/android">'+analog+'</root>')))
+            (app/f'res/layout/surface_analog_{"light" if light else "dark"}.xml').write_text(ET.tostring(native,encoding='unicode'))
 (app/'res/layout/shortcut_row.xml').write_text('<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/shortcut_row" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" />')
 (app/'res/layout/shortcut_cell.xml').write_text('<TextView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/shortcut_click" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:background="@android:color/transparent" android:text="" />')
 for mode,color in [('light','#F5F4EE'),('dark','#181B1C')]:

@@ -58,6 +58,21 @@ class WidgetRuntimeTest {
         assertTrue(Color.red(center)>0&&Color.blue(center)>0)
         assertNull(MusicArtwork.diffuse(null))
     }
+    @Test fun widgetSurfacesInflateOnlyTheClockComponentsTheyUse() {
+        val data=RenderData(RacingSnapshot(Section(SampleRacing.drivers,sample=true),Section(SampleRacing.teams,sample=true),Section(SampleRacing.schedule,sample=true),Section(SampleRacing.result,sample=true)),MediaInfo(),BatteryInfo(73,false),AgendaData(false,emptyList()),false)
+        fun clocks(view:android.view.View):List<android.view.View> =
+            (if(view is android.widget.TextClock||view is android.widget.AnalogClock)listOf(view) else emptyList())+
+                if(view is android.view.ViewGroup)(0 until view.childCount).flatMap{clocks(view.getChildAt(it))} else emptyList()
+        for(kind in listOf(WidgetKind.COMPACT,WidgetKind.WEEKEND,WidgetKind.BATTERY,WidgetKind.PHOTO,WidgetKind.GRID,WidgetKind.CLOCK,WidgetKind.ANALOG)){
+            val view=WidgetViews.build(context,900+kind.ordinal,WidgetConfig(kind),data,300f,220f).apply(context,android.widget.FrameLayout(context))
+            val children=clocks(view)
+            when(kind){
+                WidgetKind.CLOCK->{assertEquals(ClockDesign.plan(WidgetConfig(kind),300f,220f).size,children.size);assertTrue(children.all{it is android.widget.TextClock})}
+                WidgetKind.ANALOG->{assertEquals(1,children.size);assertTrue(children.single() is android.widget.AnalogClock)}
+                else->assertTrue("No hidden clock dependencies in $kind",children.isEmpty())
+            }
+        }
+    }
     @Test fun independentlyConfiguredInstancesAndPinProfilesSurviveStoreRecreation() {
         val a=WidgetConfig(WidgetKind.DRIVER,selection="hamilton",accent="#F04C48")
         val b=WidgetConfig(WidgetKind.DRIVER,selection="leclerc",light=true)
@@ -76,13 +91,13 @@ class WidgetRuntimeTest {
         assertEquals("solid",WidgetConfig.parse("""{"kind":"SWISS","light":true}""",WidgetKind.SWISS).surface)
     }
     @Test @Config(sdk=[29]) fun nativeClockLayoutAndRemoteFormattingWorkOnMinimumAndroidVersion() {
-        val views=android.widget.RemoteViews(context.packageName,R.layout.widget_surface)
-        views.setString(R.id.time,"setTimeZone","Asia/Kolkata")
-        views.setCharSequence(R.id.time,"setFormat12Hour","HH:mm")
-        views.setCharSequence(R.id.time,"setFormat24Hour","HH:mm")
+        val views=android.widget.RemoteViews(context.packageName,R.layout.tick_sans_500_start)
+        views.setString(R.id.clock_text,"setTimeZone","Asia/Kolkata")
+        views.setCharSequence(R.id.clock_text,"setFormat12Hour","HH:mm")
+        views.setCharSequence(R.id.clock_text,"setFormat24Hour","HH:mm")
         val layout=views.apply(context,android.widget.FrameLayout(context))
-        assertEquals("Asia/Kolkata",layout.findViewById<android.widget.TextClock>(R.id.time).timeZone)
-        assertEquals("HH:mm",layout.findViewById<android.widget.TextClock>(R.id.time).format24Hour)
+        assertEquals("Asia/Kolkata",layout.findViewById<android.widget.TextClock>(R.id.clock_text).timeZone)
+        assertEquals("HH:mm",layout.findViewById<android.widget.TextClock>(R.id.clock_text).format24Hour)
     }
     @Test @Config(sdk=[29]) fun editionTwoLayersKeepTheirColorsAndZonesOnAndroidTen() {
         val data=RenderData(RacingSnapshot(Section(SampleRacing.drivers,sample=true),Section(SampleRacing.teams,sample=true),Section(SampleRacing.schedule,sample=true),Section(SampleRacing.result,sample=true)),MediaInfo(),BatteryInfo(73,false),AgendaData(false,emptyList()),false)

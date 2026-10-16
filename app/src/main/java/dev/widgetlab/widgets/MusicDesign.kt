@@ -50,12 +50,12 @@ object MusicDesign {
                 MusicLayout(whole,diffuse=true,title=Bounds(24f,h*(if(center).48f else .25f),w-48,55f),artist=Bounds(24f,h*(if(center).48f else .25f)+60,w-48,30f),controls=controls(w/2,h*.81f,w-48),titleSize=25f,state=Bounds(24f,26f,w-48,20f),centered=true)
             }
             WidgetKind.BRUTALIST -> {
-                val room=if(w>h*1.4f)w*.62f else w-40
+                val room=if(w>h*1.4f)(w-174).coerceAtLeast(48f) else w-40
                 MusicLayout(whole,title=Bounds(22f,h*.22f,room,40f),artist=Bounds(22f,h*.22f+44,room,24f),controls=controls(if(w>h*1.4f)w-78 else w/2,h-34f,if(w>h*1.4f)132f else w-44),titleSize=24f)
             }
             else -> {
                 val s=min(h-32,w*.37f);val x=s+36
-                MusicLayout(whole,cover=Bounds(16f,(h-s)/2,s,s),title=Bounds(x,h*.43f,w-x-25,38f),artist=Bounds(x,h*.69f,w-x-25,30f),controls=emptyList(),titleSize=25f,state=Bounds(x,h*.23f,w-x-25,25f))
+                MusicLayout(whole,cover=Bounds(16f,(h-s)/2,s,s),title=Bounds(x,h*.61f,w-x-25,30f),artist=Bounds(x,h*.82f,w-x-25,24f),controls=emptyList(),titleSize=25f,state=Bounds(x,h*.44f,w-x-25,22f))
             }
         }
     }

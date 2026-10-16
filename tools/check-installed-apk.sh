@@ -10,4 +10,7 @@ widgetlab_result=$?
 mkdir -p releasecheck/build/device-evidence
 adb logcat -d > releasecheck/build/device-evidence/runtime.txt
 adb shell dumpsys appwidget > releasecheck/build/device-evidence/widgets.txt
+for widgetlab_capture in clock player race; do
+  adb pull "/data/local/tmp/widgetlab-release-$widgetlab_capture.png" releasecheck/build/device-evidence/ 2>/dev/null
+done
 exit "$widgetlab_result"

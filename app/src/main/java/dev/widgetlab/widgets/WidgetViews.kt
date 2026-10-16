@@ -25,7 +25,11 @@ object WidgetViews {
             WidgetKind.THIN->"thin";WidgetKind.SWISS->"bold";WidgetKind.CINEMATIC,WidgetKind.VERTICAL,WidgetKind.BRUTAL_CLOCK->"condensed"
             WidgetKind.SERIF,WidgetKind.DATE->"serif";WidgetKind.DIGITAL,WidgetKind.DUAL->"technical";WidgetKind.DOT_CLOCK->"dots";WidgetKind.TERMINAL->"mono";else->"sans"
         }.let{if(cfg.typography !in listOf("design","editorial"))cfg.typography else it}
-        val layout=context.resources.getIdentifier("surface_${type}_${if(cfg.light)"light" else "dark"}","layout",context.packageName)
+        val layout=when {
+            cfg.kind==WidgetKind.ANALOG -> if(cfg.light)R.layout.surface_analog_light else R.layout.surface_analog_dark
+            cfg.kind.isClock||cfg.kind.hasAgenda -> context.resources.getIdentifier("surface_${type}_${if(cfg.light)"light" else "dark"}","layout",context.packageName)
+            else -> R.layout.widget_surface
+        }
         val views=RemoteViews(context.packageName,layout.takeIf{it!=0} ?: R.layout.widget_surface)
         val rasterScale=min(density,sqrt(pixelBudget/(w*h)))
         views.setImageViewBitmap(R.id.surface,WidgetRenderer(context).render(cfg,data,(w*rasterScale).toInt(),(h*rasterScale).toInt(),false,w))
