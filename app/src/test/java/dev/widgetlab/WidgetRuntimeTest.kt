@@ -89,6 +89,11 @@ class WidgetRuntimeTest {
                 val bitmap=renderer.render(dev.widgetlab.ui.PreviewSamples.config(cfg),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),width=630)
                 assertTrue(bitmap.allocationByteCount<=1_680_000)
                 File(dir,"${k.name.lowercase()}.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
+                val picker=Bitmap.createBitmap(bitmap.width,bitmap.height,Bitmap.Config.ARGB_8888)
+                val pickerCanvas=Canvas(picker)
+                if(cfg.surface!="solid")pickerCanvas.drawColor(Color.rgb(52,69,74))
+                pickerCanvas.drawBitmap(bitmap,0f,0f,null)
+                File(dir,"picker-${k.name.lowercase()}.png").outputStream().use{picker.compress(Bitmap.CompressFormat.PNG,100,it)}
                 val compact=renderer.render(dev.widgetlab.ui.PreviewSamples.config(cfg),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),600,220,true,300f)
                 File(dir,"compact-${k.name.lowercase()}.png").outputStream().use{compact.compress(Bitmap.CompressFormat.PNG,100,it)}
                 val x=(i%3)*420f;val y=(i/3)*370f

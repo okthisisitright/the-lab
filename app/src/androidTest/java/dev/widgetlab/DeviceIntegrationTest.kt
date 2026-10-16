@@ -79,6 +79,7 @@ class DeviceIntegrationTest {
                     val id=ids[index];val info=manager.getAppWidgetInfo(id)
                     val view=host.createView(context,id,info)
                     assertNotNull("Host view ${kind.title}",view)
+                    assertNotNull("Actual host content, not an Android error view: ${kind.title}",view.findViewById<android.view.View>(R.id.widget_root))
                     // Validate that the real RemoteViews layout is accepted by Android's inflater.
                     val data=RenderData(RacingRepository(context).snapshot(),MediaInfo(),DeviceData.battery(context),DeviceData.agenda(context),false,focus=readFocus(context))
                     val layout=WidgetViews.build(context,id,WidgetConfig(kind),data,280f,kind.height*280f/420).apply(context,view)

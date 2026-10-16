@@ -1,0 +1,53 @@
+name: Publish Edition II APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify existing APK checksum
+        working-directory: prebuilt
+        run: sha256sum --check WidgetLab-0.2.0.apk.sha256
+      - name: Upload existing APK artifact
+        id: existing-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: Widget-Lab-Edition-II-APK
+          path: |
+            prebuilt/WidgetLab-0.2.0.apk
+            prebuilt/WidgetLab-0.2.0.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - name: Publish APK download on GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ! gh release view widget-lab-0.2.0-test >/dev/null 2>&1; then
+            gh release create widget-lab-0.2.0-test \
+              --target "$GITHUB_SHA" \
+              --title 'Widget Lab 0.2.0 — Edition II' \
+              --notes-file prebuilt/RELEASE-NOTES-0.2.0.md \
+              --prerelease
+          fi
+          gh release upload widget-lab-0.2.0-test \
+            prebuilt/WidgetLab-0.2.0.apk \
+            prebuilt/WidgetLab-0.2.0.apk.sha256 \
+            --clobber
+      - name: Show download links
+        env:
+          ARTIFACT_URL: ${{ steps.existing-apk.outputs.artifact-url }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          {
+            echo '### Edition II APK uploaded and checksum verified'
+            echo
+            echo "[Download APK](https://github.com/$REPOSITORY/releases/download/widget-lab-0.2.0-test/WidgetLab-0.2.0.apk)"
+            echo
+            echo "[Actions artifact ZIP]($ARTIFACT_URL)"
+          } >> "$GITHUB_STEP_SUMMARY"
