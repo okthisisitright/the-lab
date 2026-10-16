@@ -45,7 +45,13 @@ GitHub [build 38851369088](https://github.com/okthisisitright/the-lab/actions/ru
 - Signing certificate SHA-256: `e1eac9a80df5a56dba2f65e2cf23f1c7449dd33fbcd658172a31acdad5c30368`
 - APK signature verification, ZIP integrity, required APK entries and 16 KB ZIP alignment passed. The signer matches the previous optimized 0.1.0 APK. This is an optimized build signed with the existing development key; the private key is excluded from git.
 
-Publication status and links are recorded after the upload is verified.
+[Publish run 38860986027](https://github.com/okthisisitright/the-lab/actions/runs/38860986027) completed successfully. GitHub reports the uploaded release asset at exactly 8,650,612 bytes with the SHA-256 above. A fresh download from the public release URL was compared byte-for-byte with the local signed APK.
+
+- [Direct APK](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.2.0-test/WidgetLab-0.2.0.apk)
+- [Release page, notes and checksum](https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.2.0-test)
+- [Actions artifact ZIP, ID 12028814522](https://github.com/okthisisitright/the-lab/actions/runs/38860986027/artifacts/12028814522): `Widget-Lab-Edition-II-APK`, retained for 30 days.
+
+The repository is currently public, as previously authorized; release assets are publicly downloadable until visibility changes.
 
 
 ## Launcher stress finding

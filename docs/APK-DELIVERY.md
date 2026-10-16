@@ -1,3 +1,15 @@
+# Current delivery — Edition II / 0.2.0
+
+The current verified download is [WidgetLab-0.2.0.apk](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.2.0-test/WidgetLab-0.2.0.apk), 8,650,612 bytes. Open it on the phone and allow installation from the browser/file manager when prompted. No Codex file viewer or development server is required.
+
+[Release notes and checksum](https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.2.0-test) · [Exact Actions artifact](https://github.com/okthisisitright/the-lab/actions/runs/38860986027/artifacts/12028814522) · [Verification and remaining phone checks](EDITION-II-VERIFICATION.md)
+
+The successful publish workflow is `publish-edition-ii.yml`; it verifies the committed package checksum, uploads with `actions/upload-artifact@v4`, and publishes the same signed APK on GitHub Releases. The regular `android.yml` workflow still builds and uploads a debug APK on demand or source pushes. Prefer the release package for phone updates because its development signing identity matches the earlier optimized 0.1.0 installation.
+
+The material below records the earlier 0.1.0 delivery investigation.
+
+---
+
 # Installing Widget Lab without the Codex file viewer
 
 Delivery verified: 16 October 2026. The existing optimized APK was published without rebuilding or changing the application. A separate GitHub debug build was started to verify future build delivery.

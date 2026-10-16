@@ -25,6 +25,14 @@ Music widgets use real active sessions, published metadata, album artwork, capab
 
 Racing uses independent cached Jolpica feeds, source timestamps, IANA timezone conversion and explicit historical-sample labels. Season-specific relationships are preserved. Personal driver/car imagery is supported; a bundled Hamilton photo is credited as a 2021 archive. No unrelated Racecraft app is included.
 
+## Install Edition II
+
+[**Download WidgetLab-0.2.0.apk (8.65 MB)**](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.2.0-test/WidgetLab-0.2.0.apk) · [Release notes and checksum](https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.2.0-test)
+
+Open the APK on your Android phone, allow installation from your browser/file manager when prompted, and install. This optimized development-signed package matches the earlier optimized 0.1.0 certificate and can update it while keeping settings. CI debug APKs may use a different key. Read the [verification record](docs/EDITION-II-VERIFICATION.md) for automated results and remaining physical-device checks.
+
+The exact [Actions artifact ZIP](https://github.com/okthisisitright/the-lab/actions/runs/38860986027/artifacts/12028814522) contains the same APK and its checksum; it expires after 30 days. The release asset is the simpler phone download and does not require extracting a ZIP.
+
 ## Build and install
 
 Use JDK 17 or 21, Android SDK platform 35/build-tools 35.0.0, and Gradle 8.11.1 (wrapper included). Set ANDROID_HOME or an ignored local.properties sdk.dir.
