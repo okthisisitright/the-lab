@@ -89,6 +89,8 @@ class WidgetRuntimeTest {
                 val bitmap=renderer.render(dev.widgetlab.ui.PreviewSamples.config(cfg),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),width=630)
                 assertTrue(bitmap.allocationByteCount<=1_680_000)
                 File(dir,"${k.name.lowercase()}.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
+                val compact=renderer.render(dev.widgetlab.ui.PreviewSamples.config(cfg),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),600,220,true,300f)
+                File(dir,"compact-${k.name.lowercase()}.png").outputStream().use{compact.compress(Bitmap.CompressFormat.PNG,100,it)}
                 val x=(i%3)*420f;val y=(i/3)*370f
                 c.drawText("${k.ordinal+1} / ${k.title}",x+14,y+25,paint)
                 val scaledHeight=minOf(314f,bitmap.height*390f/bitmap.width)

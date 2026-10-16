@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -291,7 +292,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     var wallpaper by rememberSaveable{mutableIntStateOf(0)}
     val availableApps=remember(picker){if(picker=="apps")LaunchApps.list(context) else emptyList()}
     Column(Modifier.fillMaxSize()){
-        LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+        LazyColumn(Modifier.weight(1f).testTag("design-settings"),contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
             item{Eyebrow("${(cfg.kind.ordinal+1).toString().padStart(3,'0')} / ${cfg.kind.collection.title}",color=Lime);Spacer(Modifier.height(12.dp));Heading(cfg.kind.title,43);Text(cfg.kind.size+" · launcher grid varies",color=Soft,fontSize=11.sp,modifier=Modifier.padding(top=10.dp))}
             item{Preview(cfg,data,shape=previewShape,wallpaper=wallpaper);if(cfg.surface!="solid")Eyebrow("SHOWN OVER PREVIEW WALLPAPER",Modifier.padding(top=8.dp))}
             item{
@@ -303,8 +304,8 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                 if(!cfg.kind.isPhoto&&cfg.kind!=WidgetKind.ARTWORK){
                     ChoiceRow("BACKGROUND",listOf("transparent" to "None","solid" to "Solid","semi" to "Translucent","tint" to "Tint","glass" to "Glass","outline" to "Outline"),cfg.surface){onChange(cfg.copy(surface=it))}
                 }
-                if(!cfg.kind.isPhoto||cfg.kind!=WidgetKind.PHOTO)ChoiceRow("TYPE & SURFACE COLOR",listOf("dark" to "Light type / dark surface","light" to "Dark type / light surface"),if(cfg.light)"light" else "dark"){onChange(cfg.copy(light=it=="light"))}
-                if(!cfg.kind.isPhoto){
+                if((!cfg.kind.isPhoto&&cfg.kind!=WidgetKind.ARTWORK)||cfg.kind==WidgetKind.FRAME)ChoiceRow("TYPE & SURFACE COLOR",listOf("dark" to "Light type / dark surface","light" to "Dark type / light surface"),if(cfg.light)"light" else "dark"){onChange(cfg.copy(light=it=="light"))}
+                if(!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.ARTWORK,WidgetKind.CASSETTE)){
                     Eyebrow("ACCENT",Modifier.padding(top=18.dp,bottom=12.dp))
                     Row(horizontalArrangement=Arrangement.spacedBy(14.dp),modifier=Modifier.horizontalScroll(rememberScrollState())){
                         listOf("#C3D8B0","#F1E5CA","#5AC7B5","#E56152","#E6A95C","#96B2D0","#F4F4EF").forEach{hex->Box(Modifier.size(29.dp).background(Color(android.graphics.Color.parseColor(hex)),CircleShape).border(if(cfg.accent==hex)3.dp else 0.dp,White,CircleShape).clickable{onChange(cfg.copy(accent=hex))})}
@@ -316,7 +317,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                     ChoiceRow("DATE",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showDate)"yes" else "no"){onChange(cfg.copy(showDate=it=="yes"))}
                     if(cfg.showDate)ChoiceRow("WEEKDAY",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showWeekday)"yes" else "no"){onChange(cfg.copy(showWeekday=it=="yes"))}
                 }
-                if(cfg.surface!="transparent"&&!cfg.kind.isPhoto)ChoiceRow("CORNERS",listOf("0" to "Square","12" to "Soft","24" to "Rounded","40" to "Pill"),cfg.corners.toString()){onChange(cfg.copy(corners=it.toInt()))}
+                if(cfg.surface!="transparent"&&!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.BRUTALIST,WidgetKind.BRUTAL_CLOCK))ChoiceRow("CORNERS",listOf("0" to "Square","12" to "Soft","24" to "Rounded","40" to "Pill"),cfg.corners.toString()){onChange(cfg.copy(corners=it.toInt()))}
             }
             if(cfg.kind.hasPortrait){item{
                 Rule()

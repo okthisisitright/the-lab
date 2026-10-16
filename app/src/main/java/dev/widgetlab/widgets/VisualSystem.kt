@@ -45,7 +45,8 @@ object ClockDesign {
                 if(cfg.showDate)parts+=item(p,h*.76f,w-2*p,22f,date,size=11f,role="date")
             }
             WidgetKind.SPLIT -> {
-                if(w/h>1.2f){parts+=item(p,h*.2f,w*.57f-p,h*.6f,face="sans",weight=650,size=75f)
+                if(!cfg.showDate){parts+=item(p,p,w-2*p,h-2*p,weight=650,size=86f)}
+                else if(w/h>1.2f){parts+=item(p,h*.2f,w*.57f-p,h*.6f,face="sans",weight=650,size=75f)
                     parts+=item(w*.65f,h*.2f,w*.35f-p,h*.36f,"dd","serif",500,58f,role="day")
                     if(cfg.showDate)parts+=item(w*.65f,h*.58f,w*.35f-p,32f,"MMM EEE",size=11f,role="date")
                 }else{parts+=item(p,p,w-2*p,h*.48f,weight=700,size=75f)
@@ -56,8 +57,8 @@ object ClockDesign {
                 parts+=item(w*.49f,p+10,w*.51f-p,h*.3f,if(cfg.showWeekday)"MMM\nEEEE" else "MMMM",face="sans",weight=500,size=19f,role="date")
             }
             WidgetKind.TODAY -> {
-                parts+=item(p,p,w-2*p,h*.29f,face="sans",weight=650,size=68f)
-                if(cfg.showDate)parts+=item(p,h*.32f,w-2*p,22f,date,size=12f,role="date")
+                parts+=item(p,if(h<180)8f else p,w-2*p,if(h<180)h*.42f else h*.25f,face="sans",weight=650,size=68f)
+                if(cfg.showDate)parts+=item(p,if(h<180)h*.57f else h*.36f,w-2*p,22f,date,size=12f,role="date")
             }
             WidgetKind.ANALOG -> Unit
             else -> {

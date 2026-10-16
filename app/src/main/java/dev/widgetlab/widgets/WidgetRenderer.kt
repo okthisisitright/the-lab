@@ -119,6 +119,16 @@ class WidgetRenderer(private val context:Context) {
             val team=driver.teams.firstOrNull().orEmpty();val color=Color.parseColor(teamColor(team))
             val portrait=art() ?: if(driver.id=="hamilton")ArtCache.get(context,"archive/hamilton") else null
             val minimal=cfg.kind==WidgetKind.MINIMAL_DRIVER
+            if(compact){
+                val textRight=if(minimal)w-pad else w*.68f
+                if(!minimal){rect(w*.71f,0f,w*.29f,h-18,color);photograph(portrait,Bounds(w*.71f,0f,w*.29f,h-18),empty=false)}
+                label("${table.season} / DRIVER",pad,17f,max=textRight-pad)
+                fit(driver.number,pad,h*.67f,min(54f,h*.48f),w*.22f,if(minimal)ink else color,"condensed")
+                val x=w*.3f
+                text(driver.family.uppercase(),x,h*.46f,min(19f,w*.065f),ink,"condensed",700,textRight-x)
+                label("P${driver.position} / ${driver.points} PTS",x,h*.68f,max=textRight-x)
+                footer(s,table.season);return
+            }
             if(minimal){
                 label("${table.season} / DRIVER FILE",color=muted)
                 fit(driver.number,pad,h*.52f,min(110f,h*.44f),w*.6f,ink,"condensed",700)
@@ -148,7 +158,15 @@ class WidgetRenderer(private val context:Context) {
             val s=d.racing.teams;val team=s.value.entries.find{it.id==cfg.selection} ?: if(cfg.selection.isBlank())s.value.entries.firstOrNull() else null
             if(team==null){text("Team unavailable",pad,h*.5f,24f);footer(s);return}
             val color=Color.parseColor(teamColor(team.id))
-            val art=art();val artHeight=if(tall)h*.44f else h*.36f
+            val art=art()
+            if(compact){
+                rect(0f,0f,4f,h,color)
+                fit(team.name.uppercase(),pad,35f,27f,inner,ink,"condensed")
+                text("P${team.position}",pad,h-28,32f,ink,"condensed",700,inner*.35f)
+                text("${team.points} PTS",w*.43f,h-28,22f,color,"technical",600,inner*.55f)
+                footer(s,s.value.season);return
+            }
+            val artHeight=if(tall)h*.44f else h*.36f
             if(art!=null)photograph(art,Bounds(0f,0f,w,artHeight)) else {
                 rect(0f,0f,w,artHeight,color)
                 text(team.name.uppercase(),pad,artHeight*.7f,min(62f,w*.18f),0xCC101418.toInt(),"condensed",700,inner)
@@ -171,7 +189,16 @@ class WidgetRenderer(private val context:Context) {
             val season=if(teams)d.racing.teams.value.season else d.racing.drivers.value.season
             label("${if(teams)"CONSTRUCTORS" else "DRIVERS"} / $season")
             if(names.isEmpty()){text("Not published",pad,h*.55f,23f);footer(s);return}
-            val top=if(compact)40f else 63f
+            if(compact&&!teams){
+                val col=inner/3
+                names.forEachIndexed{i,e->val x=pad+i*col
+                    label("0${i+1}",x,40f,max=col-8)
+                    text(e.first,x,h-43,19f,ink,"condensed",700,col-8)
+                    text(e.second,x,h-26,12f,muted,"technical",500,col-8)
+                    rect(x,h-20,col-8,2f,Color.parseColor(teamColor(e.third)))
+                };footer(s,season);return
+            }
+            val top=if(compact)25f else 63f
             if(teams){
                 val step=(h-top-28)/3
                 names.forEachIndexed{i,e->
@@ -179,9 +206,9 @@ class WidgetRenderer(private val context:Context) {
                     val fraction=(e.second.toFloatOrNull() ?: 0f)/maxPoints
                     val y=top+i*step
                     text("0${i+1}",pad,y+16,14f,muted,"mono",max=25f)
-                    text(e.first,pad+34,y+16,min(22f,step*.35f),ink,"condensed",600,inner*.56f)
+                    text(e.first,pad+34,y+16,min(22f,step*.60f),ink,"condensed",600,inner*.56f)
                     fit(e.second,w-83,y+16,22f,62f,ink,"technical")
-                    rect(pad+34,y+25,(inner-34)*fraction,3f,Color.parseColor(teamColor(e.third)))
+                    rect(pad+34,y+step-4,(inner-34)*fraction,2f,Color.parseColor(teamColor(e.third)))
                 }
             }else{
                 val col=inner/3; val baseline=h-38f
@@ -235,6 +262,14 @@ class WidgetRenderer(private val context:Context) {
             val race=next();val s=d.racing.schedule
             if(race==null){label("RACE CALENDAR");text("Calendar complete",pad,h*.5f,25f);footer(s);return}
             val editorial=cfg.kind==WidgetKind.WEEKEND_EDITORIAL
+            if(compact){
+                label("R${race.round} / ${race.season}",pad,18f,color=if(editorial)accent else muted)
+                fit(race.location.ifBlank{race.name.removeSuffix(" Grand Prix")},pad,49f,27f,inner)
+                val z=race.start?.atZone(cfg.zone())
+                text("Race",pad,h-28,15f,ink,"sans",600,inner*.3f)
+                fit(z?.format(DateTimeFormatter.ofPattern(if(cfg.hour24)"EEE HH:mm" else "EEE h:mm a")) ?: "TIME TBA",w*.4f,h-28,18f,w*.6f-pad,ink,"technical")
+                footer(s,race.season);return
+            }
             label("ROUND ${race.round.toString().padStart(2,'0')} / ${race.season}",color=if(editorial)accent else muted)
             val titleY=if(compact)55f else 67f
             if(!editorial)flag(race.country,pad,titleY-24,23f)
@@ -258,7 +293,7 @@ class WidgetRenderer(private val context:Context) {
         }
         fun countdown(){
             val race=next();val s=d.racing.schedule
-            label("NEXT / LIGHTS OUT",color=accent)
+            if(h>=100)label("NEXT / LIGHTS OUT",color=accent)
             if(race==null){text("Season complete",pad,h*.5f,24f);footer(s);return}
             val duration=race.start?.let{Duration.between(d.now,it)}
             val future=duration!=null&&!duration.isNegative
@@ -272,12 +307,19 @@ class WidgetRenderer(private val context:Context) {
                     fit((duration.toHours()%24).toString().padStart(2,'0'),w*.55f,h*.71f,min(100f,h*.4f),inner*.45f,accent,"condensed")
                     label("DAYS",pad,h*.8f);label("HOURS",w*.55f,h*.8f)
                 }else fit(if(s.sample)"ARCHIVE / ${race.season}" else "TIME TBA",pad,h*.65f,42f,inner)
-            };label("R${race.round} / ${race.date}",pad,h-24);footer(s,race.season)
+            };if(h>=100)label("R${race.round} / ${race.date}",pad,h-24);footer(s,race.season)
         }
         fun results(){
             val s=d.racing.result;val r=s.value
             label("FINAL / CLASSIFICATION",color=accent)
             if(r==null||r.finishers.isEmpty()){text("No result published",pad,h*.5f,23f);footer(s);return}
+            if(compact){
+                val winner=r.finishers.first()
+                fit(r.race.name.removeSuffix(" Grand Prix").uppercase(),pad,48f,24f,inner)
+                text("01 / ${winner.code}",pad,h-26,24f,Color.parseColor(teamColor(winner.team)),"condensed",700,inner*.5f)
+                label(r.finishers.drop(1).take(2).joinToString(" / "){it.code},w*.57f,h-28,max=w*.43f-pad)
+                footer(s,r.race.season);return
+            }
             fit(r.race.name.removeSuffix(" Grand Prix").uppercase(),pad,56f,30f,inner)
             val winner=r.finishers.first();val color=Color.parseColor(teamColor(winner.team));val top=75f
             rect(pad,top,inner*.35f,h-top-35,color)
@@ -289,6 +331,12 @@ class WidgetRenderer(private val context:Context) {
             footer(s,r.race.season)
         }
         fun circuitCard(){val race=next();val s=d.racing.schedule
+            if(compact){
+                label("R${race?.round ?: "—"} / ${race?.season ?: "—"}",pad,18f,max=inner*.5f)
+                fit(race?.location ?: "Circuit",pad,53f,24f,inner*.5f)
+                label(race?.date?.toString() ?: "DATE TBA",pad,h-25,max=inner*.5f)
+                map(race,Bounds(w*.56f,15f,w*.44f-pad,h-45));footer(s,race?.season.orEmpty());return
+            }
             label("ROUND FILE / ${race?.season ?: "—"}")
             text(race?.round?.toString()?.padStart(2,'0') ?: "—",pad,h*.32f,min(88f,h*.25f),accent,"condensed",700,w*.5f)
             label(race?.country ?: "AWAITING SCHEDULE",w*.54f,h*.16f,max=w*.46f-pad)
@@ -319,6 +367,7 @@ class WidgetRenderer(private val context:Context) {
                 val x=size+22;val max=w-x-100
                 text(track,x,h*.42f,15f,ink,"sans",650,max)
                 text(artist,x,h*.42f+20,10f,muted,max=max)
+                rect(10f+size-2,(h-size)/2,2f,size,accent)
                 transport();return
             }
             val bottom=h-49f
@@ -334,7 +383,7 @@ class WidgetRenderer(private val context:Context) {
                     line(pad,bottom,w-pad,bottom);label("STEREO / ${if(m.playing)"PLAYING" else "PAUSED"}",pad,h-20,max=w-165)
                 }
                 WidgetKind.GLASS->{
-                    if(cover!=null){photograph(cover,Bounds(0f,0f,w,h));rect(0f,0f,w,h,0xC01C242A.toInt())}
+                    if(cover!=null){photograph(cover,Bounds(0f,0f,w,h));rect(0f,0f,w,h,if(cfg.light)0xD0F2EEE3.toInt() else 0xC01C242A.toInt())}
                     rect(12f,12f,w-24,h-24,if(cfg.light)0x75FFFFFF else 0x35FFFFFF,18f)
                     line(28f,13f,w-28,13f,0x80FFFFFF.toInt())
                     val size=min(88f,h*.39f);photograph(cover,Bounds(pad+4,pad+5,size,size),12f)
@@ -348,7 +397,7 @@ class WidgetRenderer(private val context:Context) {
                     val radius=min(w*.35f,(bottom-if(stacked)74 else 40)*.49f);val cx=if(stacked)w*.5f else w*.3f;val cy=if(stacked)radius+12 else bottom*.48f
                     circle(cx,cy,radius,0xFF090A0B.toInt())
                     for(i in 1..18)circle(cx,cy,radius*(.45f+i*.029f),if(i%4==0)0xFF333437.toInt() else 0xFF202124.toInt(),.55f)
-                    circlePhoto(cover,cx,cy,radius*.39f);circle(cx,cy,3f,0xFFC4C2B8.toInt())
+                    circlePhoto(cover,cx,cy,radius*.39f);circle(cx,cy,3f,accent)
                     val tx=if(stacked)pad else w*.63f;val ty=if(stacked)bottom-38 else bottom*.36f;val tw=if(stacked)inner else w-tx-pad
                     text(track,tx,ty,23f,ink,"serif",500,tw);text(artist,tx,ty+21,11f,muted,max=tw)
                     label("33⅓ / RECORD STUDY",pad,h-20,max=w-160)
@@ -397,7 +446,8 @@ class WidgetRenderer(private val context:Context) {
                 WidgetKind.SWISS->{rect(pad,14f,26f,4f,accent);label("LOCAL TIME",w-pad-78,21f,max=78f)}
                 WidgetKind.CINEMATIC->{line(pad,13f,w-pad,13f);label("THE PRESENT",pad,h-8,max=inner)}
                 WidgetKind.BRUTAL_CLOCK->{rect(0f,h*.49f,w,2f,accent);label("H",w-pad-9,pad+8,max=10f);label("M",w-pad-9,h*.55f,max=10f)}
-                WidgetKind.SPLIT->{if(w/h>1.2f)line(w*.62f,pad,w*.62f,h-pad) else line(pad,h*.54f,w-pad,h*.54f)}
+                WidgetKind.ANALOG->{circle(w/2,h/2,5f,accent)}
+                WidgetKind.SPLIT->{if(cfg.showDate&&w/h>1.2f)line(w*.62f,pad,w*.62f,h-pad) else if(cfg.showDate)line(pad,h*.54f,w-pad,h*.54f)}
                 WidgetKind.DUAL->{line(w*.5f,pad,w*.5f,h-pad);label(zoneLabel(cfg.timezone),pad,h*.23f,max=w*.44f-pad);label(zoneLabel(cfg.secondaryZone),w*.54f,h*.23f,max=w*.46f-pad)}
                 WidgetKind.TERMINAL->{label("> TIME / ${zoneLabel(cfg.timezone)}",color=accent);line(pad,33f,w-pad,33f);rect(w-pad-6,h-pad-6,6f,6f,accent)}
                 WidgetKind.SERIF->{line(w*.4f,16f,w*.6f,16f,accent)}
@@ -451,12 +501,13 @@ class WidgetRenderer(private val context:Context) {
                 val active=d.focus.active;val cx=pad+15;val cy=h*.42f
                 circle(cx,cy,14f,if(active)accent else muted,1.2f);line(cx-8,cy,cx+8,cy,if(active)accent else muted,2f)
                 text(d.focus.title,pad+45,cy+6,min(27f,w*.075f),ink,"sans",500,inner-45)
-                label("ANDROID / INTERRUPTION FILTER",pad,h-22)
+                label("ANDROID / INTERRUPTION FILTER",pad,h-9)
             }
             WidgetKind.DATE,WidgetKind.TODAY->{
                 if(preview)clock()
-                val top=h*if(cfg.kind==WidgetKind.DATE).53f else .48f
-                line(pad,top-13,w-pad,top-13)
+                if(h<180)return
+                val top=if(cfg.kind==WidgetKind.DATE)max(h*.60f,122f) else max(h*.55f,112f)
+                line(pad,top-10,w-pad,top-10)
                 val agenda=d.agenda
                 if(!agenda.permitted){text("Your calendar, privately.",pad,top+17,17f,ink,"serif",500,inner);label("TAP TO ENABLE CALENDAR ACCESS",pad,top+38,max=inner)}
                 else if(agenda.error){text("Calendar unavailable",pad,top+17,17f,max=inner)}
@@ -479,10 +530,20 @@ class WidgetRenderer(private val context:Context) {
                 val x=w-pad-39;val y=h*.36f;rect(x,y,34f,17f,if(cfg.light)0x20202020 else 0x30FFFFFF,3f);rect(x+3,y+3,28*fraction,11f,accent,1f);rect(x+35,y+5,2f,7f,muted)
                 label(if(d.battery.charging)"CHARGING" else "ON BATTERY",pad,h-12)
             }else{
+                if(compact){
+                    label("ENERGY / RESERVE",pad,18f)
+                    fit("${percent ?: "—"}%",pad,h*.69f,min(54f,h*.45f),inner*.6f,ink,"technical")
+                    val cx=w*.78f;val cy=h*.47f;val r=min(w*.13f,h*.22f)
+                    circle(cx,cy,r,ruleColor,5f)
+                    p.color=accent;p.style=Paint.Style.STROKE;p.strokeWidth=5f;c.drawArc(RectF(cx-r,cy-r,cx+r,cy+r),-90f,360*fraction,false,p);p.style=Paint.Style.FILL
+                    label(if(d.battery.charging)"CHARGING" else "ON BATTERY",pad,h-10);return
+                }
                 label("ENERGY / RESERVE")
                 val cy=h*.48f;val cx=w*.7f;val radius=min(w*.22f,h*.3f)
                 p.color=ruleColor;p.strokeWidth=9f;p.style=Paint.Style.STROKE;c.drawArc(RectF(cx-radius,cy-radius,cx+radius,cy+radius),140f,260f,false,p)
-                p.color=accent;c.drawArc(RectF(cx-radius,cy-radius,cx+radius,cy+radius),140f,260*fraction,false,p);p.style=Paint.Style.FILL
+                p.color=accent
+                c.drawArc(RectF(cx-radius,cy-radius,cx+radius,cy+radius),140f,260*fraction,false,p)
+                p.style=Paint.Style.FILL
                 fit((percent ?: "—").toString(),pad,cy+18,75f,inner*.45f,ink,"technical")
                 label("PERCENT",pad,cy+39)
                 line(pad,h-49,w-pad,h-49)

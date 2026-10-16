@@ -80,3 +80,16 @@ for face in ['sans','condensed','serif','technical','mono','dots']:
     font='inter' if face=='sans' else face
     for weight in [200,400,450,500,650,700,850]:
         (app/f'res/layout/tick_{face}_{weight}.xml').write_text(f'<TextClock xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/clock_text" android:layout_width="match_parent" android:layout_height="match_parent" android:includeFontPadding="false" android:gravity="start|center_vertical" android:fontFamily="@font/{font}" android:textFontWeight="{weight}" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />')
+lines=['# The 50 objects / Edition II','', 'Every row corresponds to a registered Android AppWidgetProvider. Launcher cell sizes vary; resize ranges below describe the intended supported grid. Compact layouts retain only information that fits.','', '| # | Design | Supported grid | Function | Customization |','|---|---|---|---|---|']
+for index,(key,title,col,size,height,desc) in enumerate(items,1):
+    options=['theme / typography'] if col!='PHOTO' else ['photo selection','focal alignment']
+    if col=='CLOCKS':options+=['surface / transparency','time format' if key!='ANALOG' else 'native dial','timezone','date / weekday' if key!='ANALOG' else 'API 31+ zone']
+    if col=='RACING':options+=['surface','accent','driver / portrait' if key in ['DRIVER','MINIMAL_DRIVER'] else 'team / car art' if key=='CONSTRUCTOR' else 'row limit' if 'STANDINGS' in key else 'IANA timezone' if key in ['WEEKEND','WEEKEND_EDITORIAL','COUNTDOWN'] else 'cached source']
+    if col=='MUSIC':options+=['preferred media app','surface','real session artwork']
+    if col=='PHOTO':options+=['corners' if key in ['PHOTO','FRAME'] else 'multi-image layout' if key in ['COLLAGE','FILMSTRIP'] else 'caption']
+    if key=='FRAME':options+=['caption','frame theme']
+    if col=='ESSENTIALS':options+=['surface','accent','calendar permission / timezone' if key in ['DATE','TODAY'] else 'actual device status']
+    if col=='LAUNCHERS':options+=['transparency','app activities (up to 6)' if key in ['STRIP','LAUNCHER','GRID'] else 'label / caption']
+    lines.append(f'| {index:02} | {title} | {size} | {desc} | {", ".join(options)} |')
+lines+=['','Controls are restricted in the configuration UI where a fixed artwork/frame treatment applies. AnalogClock uses the device timezone on Android 10–11. No clock promises bitmap updates every second. Multi-image collage uses the first three selected images; filmstrip uses up to four according to width. Small launcher layouts reveal additional selections after expansion.','', 'Gallery and picker previews use the same renderer. NASA photographic/cover studies are explicitly sample content; installed widgets require real media sessions or chosen personal photos.']
+(root/'docs/CATALOG.md').write_text('\n'.join(lines)+'\n')

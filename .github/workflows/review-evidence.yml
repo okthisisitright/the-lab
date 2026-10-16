@@ -1,0 +1,28 @@
+name: Review Android screenshots
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Android 15 device-check run ID from this repository
+        required: true
+permissions:
+  contents: write
+  actions: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve emulator evidence
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$RUN_ID" --name Android-15-device-test-results --dir evidence
+          find evidence -name '*.png' -exec cp '{}' . \;
+          zip -qr Studio-evidence.zip evidence
+          if ! gh release view widget-lab-0.2.0-qa >/dev/null 2>&1; then
+            gh release create widget-lab-0.2.0-qa --title 'Edition II — Android emulator evidence' --notes 'Automated emulator screenshots and test reports. Development verification; no APK in this release. Physical Vivo acceptance remains separate.' --prerelease
+          fi
+          gh release upload widget-lab-0.2.0-qa Studio-evidence.zip ./*.png --clobber

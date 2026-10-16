@@ -22,7 +22,7 @@ class StudioUiTest {
         compose.onNodeWithContentDescription("Time / maison actual renderer preview").performScrollTo().performClick()
         compose.onNodeWithText("Time / maison").assertIsDisplayed()
         screenshot("02-clock-detail")
-        compose.onNode(hasScrollAction() and hasAnyDescendant(hasText("Time / maison"))).performScrollToNode(hasText("BACKGROUND"))
+        compose.onNodeWithTag("design-settings").performScrollToNode(hasText("BACKGROUND"))
         compose.onNodeWithText("Solid").performScrollTo().performClick()
         compose.onNodeWithText("None").performScrollTo().performClick()
         compose.onNodeWithText("Add to Home Screen  +").assertIsDisplayed()
