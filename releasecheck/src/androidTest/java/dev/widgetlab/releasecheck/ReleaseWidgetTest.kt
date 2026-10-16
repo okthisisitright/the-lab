@@ -9,6 +9,9 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.FrameLayout
+import android.graphics.drawable.BitmapDrawable
+import android.view.Gravity
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -46,6 +49,8 @@ class ReleaseWidgetTest {
         assertEquals(50,providers.size)
         val host=AppWidgetHost(context,9201)
         val ids=mutableListOf<Int>()
+        val activity=instrumentation.startActivitySync(Intent(context,HostActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as HostActivity
+        val density=context.resources.displayMetrics.density
         instrumentation.runOnMainSync{host.startListening()}
         try {
             providers.forEach { info ->
@@ -56,11 +61,37 @@ class ReleaseWidgetTest {
                     putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,220)
                 })
                 lateinit var view:AppWidgetHostView
-                instrumentation.runOnMainSync{view=host.createView(context,id,info)}
+                instrumentation.runOnMainSync{
+                    view=host.createView(activity,id,info)
+                    activity.container.removeAllViews()
+                    activity.container.addView(view,FrameLayout.LayoutParams((300*density).toInt(),(220*density).toInt(),Gravity.CENTER))
+                }
                 shell("am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n ${info.provider.flattenToString()} --eia appWidgetIds $id")
                 awaitSurface(view,info.provider.className)
+                if(info.provider.className.endsWith("ClockWidget")||info.provider.className.endsWith("CompactWidget")||info.provider.className.endsWith("WeekendWidget")){
+                    // A genuine options broadcast, with no direct calls into Widget Lab.
+                    val initial=context.packageManager.getResourcesForApplication("dev.widgetlab").getIdentifier("widget_surface","layout","dev.widgetlab")
+                    instrumentation.runOnMainSync{view.updateAppWidget(android.widget.RemoteViews("dev.widgetlab",initial))}
+                    manager.updateAppWidgetOptions(id,Bundle().apply {
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,330)
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,330)
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,140)
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,140)
+                    })
+                    awaitSurface(view,"resize ${info.provider.className}")
+                    instrumentation.runOnMainSync{
+                        val bitmap=(surface(view)!!.drawable as BitmapDrawable).bitmap
+                        assertEquals("Resize changes bitmap aspect ratio",330f/140,bitmap.width.toFloat()/bitmap.height,.03f)
+                    }
+                }
+                if(info.provider.className.endsWith("ClockWidget")){
+                    shell("am kill --user 0 dev.widgetlab")
+                    instrumentation.runOnMainSync{view.updateAppWidget(android.widget.RemoteViews("dev.widgetlab",context.packageManager.getResourcesForApplication("dev.widgetlab").getIdentifier("widget_surface","layout","dev.widgetlab")))}
+                    shell("am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n ${info.provider.flattenToString()} --eia appWidgetIds $id")
+                    awaitSurface(view,"process restart ${info.provider.className}")
+                }
             }
-        } finally {ids.forEach{host.deleteAppWidgetId(it)};instrumentation.runOnMainSync{host.stopListening()};host.deleteHost()}
+        } finally {ids.forEach{host.deleteAppWidgetId(it)};instrumentation.runOnMainSync{host.stopListening();activity.finish()};host.deleteHost()}
     }
     @Test fun configurationCompletesOnlyAfterFirstRealWidgetUpdate() {
         shell("appwidget grantbind --package ${context.packageName} --user 0")
