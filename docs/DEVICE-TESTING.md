@@ -61,3 +61,9 @@ Record device model, launcher version, Funtouch OS build, app version, signing i
 - Check actual charging state, Android DND filter and optional local calendar events. Confirm no calendar permission is requested until you choose to enable it.
 - Verify 4×2 and taller racing layouts on the Vivo grid, both classic and sprint weekends, offline freshness labels and the 2021 archival portrait marker.
 - Test large system fonts and Vivo battery/autostart policy. Record the physical launcher/device version separately from emulator results.
+
+## Vivo blank-widget regression, 0.3.0
+
+Install the signed update over the existing app. Open Widget Lab once, then Settings → Refresh installed widgets. Check an existing blank instance. Add a fresh Minimal clock through the launcher picker, then add a second through Widget Lab's Add to home screen button. Check that actual time appears immediately, remains correct after leaving the app, and adapts when resized. Repeat with Race calendar and a player with media permission enabled. For a widget that stays blank, remove and re-add only that instance and record the local last-delivery/error text from Settings. Do not uninstall the whole application to troubleshoot: doing so deletes private photos and profiles.
+
+The 0.3.0 tests run on Android 15 without Vivo firmware. Both placement methods on the physical default Vivo launcher remain an explicit acceptance check.

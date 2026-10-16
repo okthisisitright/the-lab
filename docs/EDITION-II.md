@@ -1,3 +1,5 @@
+> Historical Edition II architecture. For the current launcher compatibility changes, simpler app UI and replacement music designs, see [0.3.0](REVISION-0.3.0.md).
+
 # Edition II / Widget Lab 0.2.0
 
 This rebuild replaces the fixed-size stretching renderer and prior app interface. The catalog contains exactly 50 registered Android providers: 12 motorsport, 8 music, 15 clocks, 5 photography, 5 essentials, 5 launcher/label designs.
