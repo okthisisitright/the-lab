@@ -30,8 +30,8 @@ object DeviceData {
             android.content.ContentUris.appendId(builder, now.plusSeconds(7 * 86400).toEpochMilli())
             val columns = arrayOf(CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.END, CalendarContract.Instances.ALL_DAY, CalendarContract.Instances.DISPLAY_COLOR)
             val events = mutableListOf<AgendaEvent>()
-            context.contentResolver.query(builder.build(), columns, "${CalendarContract.Instances.END} > ? AND ${CalendarContract.Instances.VISIBLE} = 1", arrayOf(now.toEpochMilli().toString()), "${CalendarContract.Instances.BEGIN} ASC")?.use { cursor ->
-                while (cursor.moveToNext() && events.size < 5) {
+            context.contentResolver.query(builder.build(), columns, "(${CalendarContract.Instances.END} > ? OR ${CalendarContract.Instances.ALL_DAY} = 1) AND ${CalendarContract.Instances.VISIBLE} = 1", arrayOf(now.toEpochMilli().toString()), "${CalendarContract.Instances.BEGIN} ASC")?.use { cursor ->
+                while (cursor.moveToNext() && events.size < 32) {
                     events += AgendaEvent(cursor.getLong(0), cursor.getString(1)?.ifBlank { "Untitled event" } ?: "Untitled event", Instant.ofEpochMilli(cursor.getLong(2)), Instant.ofEpochMilli(cursor.getLong(3)), cursor.getInt(4) == 1, cursor.getInt(5))
                 }
             }
@@ -46,3 +46,12 @@ data class FocusInfo(val filter:Int=0) {
     val active get()=filter in 2..4
 }
 fun readFocus(context:Context):FocusInfo = runCatching {FocusInfo(context.getSystemService(android.app.NotificationManager::class.java).currentInterruptionFilter)}.getOrDefault(FocusInfo())
+
+/** All-day calendar boundaries are floating UTC dates, not instants in the viewer's timezone. */
+fun AgendaData.forZone(now:Instant,zone:java.time.ZoneId):AgendaData {
+    val today=now.atZone(zone).toLocalDate()
+    return copy(events=events.filter{event->
+        if(event.allDay)event.end.atZone(java.time.ZoneOffset.UTC).toLocalDate().isAfter(today)
+        else event.end.isAfter(now)
+    }.take(5))
+}

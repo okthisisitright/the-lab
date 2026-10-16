@@ -14,6 +14,7 @@ import android.widget.RemoteViews
 import dev.widgetlab.R
 import dev.widgetlab.core.*
 import dev.widgetlab.data.LaunchApps
+import dev.widgetlab.data.forZone
 import dev.widgetlab.ui.WidgetConfigureActivity
 import kotlin.math.*
 
@@ -38,7 +39,7 @@ object WidgetViews {
         views.setOnClickPendingIntent(R.id.surface,root);views.setOnClickPendingIntent(R.id.widget_root,root)
         val description=when{
             cfg.kind.isMusic->"${cfg.kind.title}. ${data.media.title}. ${data.media.artist}. ${if(data.media.playing)"Playing" else "Paused"}"
-            cfg.kind.hasAgenda->if(data.agenda.permitted)data.agenda.events.joinToString(". "){it.title} else "Calendar access required. Tap to configure."
+            cfg.kind.hasAgenda->if(data.agenda.permitted)data.agenda.forZone(data.now,cfg.zone()).events.joinToString(". "){it.title} else "Calendar access required. Tap to configure."
             cfg.kind==WidgetKind.BATTERY||cfg.kind==WidgetKind.BATTERY_EDITORIAL->"Battery ${data.battery.percent ?: "unknown"} percent. ${if(data.battery.charging)"Charging" else "On battery"}"
             cfg.kind==WidgetKind.FOCUS->data.focus.title
             cfg.kind.hasLabel->cfg.label

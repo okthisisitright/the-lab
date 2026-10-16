@@ -54,7 +54,7 @@ data class WidgetConfig(
                 hour24=j.optBoolean("hour24",true),rows=j.optInt("rows",5).coerceIn(3,10),
                 image=j.optString("image"),crop=j.optString("crop","center").takeIf{it in listOf("center","top","bottom","left","right")} ?: "center",
                 typography=j.optString("typography","design").takeIf{it in listOf("design","sans","condensed","serif","technical","mono","dots","editorial")} ?: "design",
-                surface=j.optString("surface",defaults.surface).takeIf{it in listOf("transparent","solid","tint","glass","outline","semi")} ?: defaults.surface,
+                surface=j.optString("surface",if(j.has("kind")&&j.has("light")&&!j.has("surface"))"solid" else defaults.surface).takeIf{it in listOf("transparent","solid","tint","glass","outline","semi")} ?: defaults.surface,
                 secondaryZone=j.optString("secondaryZone","Europe/London"),showDate=j.optBoolean("showDate",true),showWeekday=j.optBoolean("showWeekday",true),
                 alignment=j.optString("alignment","design"),caption=j.optString("caption").take(120),label=j.optString("label",defaults.label).take(60),
                 images=list("images"),apps=list("apps"),corners=j.optInt("corners",24).coerceIn(0,40),accentText=j.optBoolean("accentText",false),

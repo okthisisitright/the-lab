@@ -223,7 +223,7 @@ class WidgetRenderer(private val context:Context) {
                     text("0${i+1}",pad,y+16,14f,muted,"mono",max=25f)
                     text(e.first,pad+34,y+16,min(22f,step*.60f),ink,"condensed",600,inner*.56f)
                     fit(e.second,w-83,y+16,min(22f,step*.70f),62f,ink,"technical")
-                    rect(pad+34,y+step-2,(inner-34)*fraction,2f,Color.parseColor(teamColor(e.third)))
+                    rect(pad+34,y+min(step-2,26f),(inner-34)*fraction,2f,Color.parseColor(teamColor(e.third)))
                 }
             }else{
                 val col=inner/3; val baseline=h-38f
@@ -541,7 +541,7 @@ class WidgetRenderer(private val context:Context) {
                 if(h<180)return
                 val top=if(cfg.kind==WidgetKind.DATE)max(h*.60f,122f) else max(h*.55f,112f)
                 line(pad,top-10,w-pad,top-10)
-                val agenda=d.agenda
+                val agenda=d.agenda.forZone(d.now,cfg.zone())
                 if(!agenda.permitted){text("Your calendar, privately.",pad,top+17,17f,ink,"serif",500,inner);label("TAP TO ENABLE CALENDAR ACCESS",pad,top+38,max=inner)}
                 else if(agenda.error){text("Calendar unavailable",pad,top+17,17f,max=inner)}
                 else if(agenda.events.isEmpty()){text("A little room to breathe.",pad,top+20,18f,ink,"serif",500,inner);label("NO UPCOMING EVENTS",pad,top+42)}

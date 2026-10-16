@@ -40,6 +40,8 @@ class WidgetRuntimeTest {
         assertEquals(10,WidgetConfig.parse("""{"rows":1000}""",WidgetKind.RESULTS).rows)
         assertNotNull(WidgetConfig(WidgetKind.WEEKEND,timezone="invented/offset").zone())
         assertNull(context.artFile("../../secrets"))
+        assertNotNull(context.artFile("1234.png"))
+        assertEquals("solid",WidgetConfig.parse("""{"kind":"SWISS","light":true}""",WidgetKind.SWISS).surface)
     }
     @Test @Config(sdk=[29]) fun nativeClockLayoutAndRemoteFormattingWorkOnMinimumAndroidVersion() {
         val views=android.widget.RemoteViews(context.packageName,R.layout.widget_surface)
@@ -76,6 +78,14 @@ class WidgetRuntimeTest {
         }
         assertEquals(33,count)
         assertNull(CircuitOutlines.path(context,"not_a_known_circuit"))
+    }
+    @Test fun allDayAgendaUsesFloatingDatesAcrossBothSidesOfUtc(){
+        val now=Instant.parse("2026-10-17T03:00:00Z")
+        val event=AgendaEvent(1,"All-day test",Instant.parse("2026-10-16T00:00:00Z"),Instant.parse("2026-10-17T00:00:00Z"),true,0)
+        val timed=AgendaEvent(2,"Timed test",Instant.parse("2026-10-17T01:00:00Z"),Instant.parse("2026-10-17T02:00:00Z"),false,0)
+        val data=AgendaData(true,listOf(event,timed))
+        assertEquals(listOf(event),data.forZone(now,java.time.ZoneId.of("America/Los_Angeles")).events)
+        assertTrue(data.forZone(now,java.time.ZoneId.of("Australia/Sydney")).events.isEmpty())
     }
     @Test fun allFiftyDesignsHaveGenuineRegisteredProvidersAndConfiguration() {
         val providers=context.packageManager.queryBroadcastReceivers(android.content.Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).setPackage(context.packageName),android.content.pm.PackageManager.GET_META_DATA)
