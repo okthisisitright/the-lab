@@ -50,9 +50,10 @@ class WidgetRuntimeTest {
         assertEquals("Asia/Kolkata",layout.findViewById<android.widget.TextClock>(R.id.time).timeZone)
         assertEquals("HH:mm",layout.findViewById<android.widget.TextClock>(R.id.time).format24Hour)
     }
-    @Test fun allNineteenDesignsHaveGenuineRegisteredProvidersAndConfiguration() {
+    @Test fun allFiftyDesignsHaveGenuineRegisteredProvidersAndConfiguration() {
         val providers=context.packageManager.queryBroadcastReceivers(android.content.Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).setPackage(context.packageName),android.content.pm.PackageManager.GET_META_DATA)
-        assertEquals(19,providers.size)
+        assertEquals(50,providers.size)
+        assertEquals(listOf(12,8,15,5,5,5),dev.widgetlab.core.Collection.entries.map{c->WidgetKind.entries.count{it.collection==c}})
         WidgetKind.entries.forEach{k->
             val info=providers.first{it.activityInfo.name==ProviderCatalog.component(context,k).className}.activityInfo
             info.loadXmlMetaData(context.packageManager,"android.appwidget.provider").use { xml ->
@@ -76,23 +77,50 @@ class WidgetRuntimeTest {
         assertTrue(data.value.entries.isNotEmpty());assertTrue(repo.snapshot().schedule.sample)
     }
     @Test fun renderEveryDesignAndBoundBitmapMemoryWithEmptyRealWorldStates() {
-        val data=RenderData(RacingSnapshot(Section(SampleRacing.drivers,sample=true),Section(SampleRacing.teams,sample=true),Section(SampleRacing.schedule,sample=true),Section(SampleRacing.result,sample=true)),MediaInfo(),BatteryInfo(73,false),AgendaData(false,emptyList()),false,Instant.parse("2026-10-15T11:00:00Z"))
+        val empty=RenderData(RacingSnapshot(Section(SampleRacing.drivers,sample=true),Section(SampleRacing.teams,sample=true),Section(SampleRacing.schedule,sample=true),Section(SampleRacing.result,sample=true)),MediaInfo(),BatteryInfo(73,false),AgendaData(false,emptyList()),false,Instant.parse("2026-10-15T11:28:00Z"))
         val renderer=WidgetRenderer(context)
         val dir=File(System.getProperty("user.dir"),"build/design-review").apply{mkdirs()}
-        val sheet=Bitmap.createBitmap(1260,2020,Bitmap.Config.ARGB_8888);val c=Canvas(sheet);c.drawColor(Color.rgb(39,42,43))
-        val p=Paint().apply{color=Color.WHITE;textSize=14f}
-        WidgetKind.entries.forEachIndexed{i,k->
-            val cfg=WidgetConfig(k,selection=if(k==WidgetKind.DRIVER)"hamilton" else "")
-            val bitmap=renderer.render(cfg,data,width=630)
-            assertTrue(bitmap.allocationByteCount<=1_680_000);assertTrue(Color.alpha(bitmap.getPixel(100,100))>0)
-            File(dir,"${k.name.lowercase()}.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
-            val x=(i%3)*420f;val y=(i/3)*285f
-            c.drawText(k.title,x+12,y+20,p)
-            val scaledHeight=minOf(245f,k.height*.78f)
-            c.drawBitmap(bitmap,null,android.graphics.RectF(x+10,y+30,x+410,y+30+scaledHeight),null)
-            val other=renderer.render(cfg.copy(light=!cfg.light,typography="mono",rows=10),data,720,900,false)
-            assertTrue(other.allocationByteCount<=1_680_000)
+        dev.widgetlab.core.Collection.entries.forEach{collection->
+            val kinds=WidgetKind.entries.filter{it.collection==collection}
+            val sheet=Bitmap.createBitmap(1260,((kinds.size+2)/3)*370,Bitmap.Config.ARGB_8888);val c=Canvas(sheet);c.drawColor(Color.rgb(44,57,61))
+            val paint=Paint().apply{color=Color.WHITE;textSize=14f}
+            kinds.forEachIndexed{i,k->
+                val cfg=WidgetConfig(k)
+                val bitmap=renderer.render(dev.widgetlab.ui.PreviewSamples.config(cfg),dev.widgetlab.ui.PreviewSamples.data(context,cfg,empty),width=630)
+                assertTrue(bitmap.allocationByteCount<=1_680_000)
+                File(dir,"${k.name.lowercase()}.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
+                val x=(i%3)*420f;val y=(i/3)*370f
+                c.drawText("${k.ordinal+1} / ${k.title}",x+14,y+25,paint)
+                val scaledHeight=minOf(314f,bitmap.height*390f/bitmap.width)
+                c.drawBitmap(bitmap,null,android.graphics.RectF(x+14,y+44,x+404,y+44+scaledHeight),null)
+                for((width,height)in listOf(300 to 96,180 to 250,360 to 520)){
+                    val other=renderer.render(cfg.copy(light=!cfg.light,typography="mono",rows=10),empty,width,height,false)
+                    assertTrue(other.allocationByteCount<=1_680_000)
+                }
+                if(k==WidgetKind.CLOCK)assertEquals(0,Color.alpha(bitmap.getPixel(1,1)))
+                val views=WidgetViews.build(context,500+k.ordinal,cfg,empty,300f,(k.height*300f/420).coerceAtLeast(54f))
+                val applied=views.apply(context,android.widget.FrameLayout(context))
+                assertNotNull(applied.findViewById<android.view.View>(R.id.surface))
+                applied.measure(android.view.View.MeasureSpec.makeMeasureSpec(600,android.view.View.MeasureSpec.EXACTLY),android.view.View.MeasureSpec.makeMeasureSpec((k.height*600/420),android.view.View.MeasureSpec.EXACTLY))
+                applied.layout(0,0,applied.measuredWidth,applied.measuredHeight)
+                val native=Bitmap.createBitmap(applied.measuredWidth,applied.measuredHeight,Bitmap.Config.ARGB_8888)
+                applied.draw(Canvas(native))
+                File(dir,"native-${k.name.lowercase()}.png").outputStream().use{native.compress(Bitmap.CompressFormat.PNG,100,it)}
+            }
+            File(dir,"collection-${collection.name.lowercase()}.png").outputStream().use{sheet.compress(Bitmap.CompressFormat.PNG,100,it)}
         }
-        File(dir,"contact-sheet.png").outputStream().use{sheet.compress(Bitmap.CompressFormat.PNG,100,it)}
+    }
+    @Test fun clockGeometryStaysInsideBoundsAndDualTimeIsIndependent() {
+        for(kind in WidgetKind.entries.filter{it.isClock})for((w,h)in listOf(110f to 110f,300f to 100f,360f to 440f)){
+            ClockDesign.plan(WidgetConfig(kind),w,h).forEach{t->
+                assertTrue("${kind.name} x",t.bounds.x>=0);assertTrue("${kind.name} width",t.bounds.x+t.bounds.w<=w+.1f)
+                assertTrue("${kind.name} y",t.bounds.y>=0);assertTrue("${kind.name} height",t.bounds.y+t.bounds.h<=h+.1f)
+            }
+        }
+        val config=WidgetConfig(WidgetKind.DUAL,timezone="Asia/Kolkata",secondaryZone="America/New_York")
+        val clocks=ClockDesign.plan(config,360f,180f)
+        assertEquals("Asia/Kolkata",clocks[0].zone);assertEquals("America/New_York",clocks[1].zone)
+        val profile=config.copy(images=listOf("a.jpg","b.jpg"),apps=listOf("dev.example/.Main"),caption="Quiet mornings",surface="outline",showDate=false)
+        assertEquals(profile,WidgetConfig.parse(profile.json(),WidgetKind.CLOCK))
     }
 }

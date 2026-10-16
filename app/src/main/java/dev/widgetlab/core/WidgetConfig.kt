@@ -9,28 +9,52 @@ import java.util.UUID
 /** One immutable profile per appWidgetId. Never share mutable settings between instances. */
 data class WidgetConfig(
     val kind: WidgetKind,
-    val light: Boolean = kind == WidgetKind.WEEKEND || kind == WidgetKind.VINYL || kind == WidgetKind.SWISS,
-    val accent: String = "#D8FF62",
-    val selection: String = if(kind == WidgetKind.DRIVER) "hamilton" else "",
+    val light: Boolean = kind.defaultLight,
+    val accent: String = "#C3D8B0",
+    val selection: String = if(kind.hasPortrait && kind!=WidgetKind.CONSTRUCTOR) "hamilton" else "",
     val timezone: String = "device",
     val hour24: Boolean = true,
     val rows: Int = 5,
     val image: String = "",
     val crop: String = "center",
-    val typography: String = "editorial"
+    val typography: String = "design",
+    val surface: String = if(kind.transparentDefault) "transparent" else if(kind==WidgetKind.GLASS || kind==WidgetKind.GLASS_CLOCK) "glass" else "solid",
+    val secondaryZone: String = "Europe/London",
+    val showDate: Boolean = true,
+    val showWeekday: Boolean = true,
+    val alignment: String = "design",
+    val caption: String = "",
+    val label: String = if(kind==WidgetKind.SECTION) "THE EVERYDAY" else "Essentials",
+    val images: List<String> = emptyList(),
+    val apps: List<String> = emptyList(),
+    val corners: Int = 24
 ) {
-    fun zone(): ZoneId = runCatching { if (timezone == "device") ZoneId.systemDefault() else ZoneId.of(timezone) }.getOrDefault(ZoneId.systemDefault())
-    fun json(): String = JSONObject().put("kind", kind.name).put("light", light).put("accent", accent)
-        .put("selection", selection).put("timezone", timezone).put("hour24", hour24).put("rows", rows)
-        .put("image", image).put("crop", crop).put("typography", typography).toString()
+    fun zone(): ZoneId = zone(timezone)
+    fun secondZone(): ZoneId = zone(secondaryZone)
+    private fun zone(value: String): ZoneId = runCatching { if(value=="device") ZoneId.systemDefault() else ZoneId.of(value) }.getOrDefault(ZoneId.systemDefault())
+    val photos get() = (if(images.isEmpty()) listOf(image) else images).filter{it.isNotBlank()}.take(6)
+    fun json(): String = JSONObject().put("kind",kind.name).put("light",light).put("accent",accent)
+        .put("selection",selection).put("timezone",timezone).put("hour24",hour24).put("rows",rows)
+        .put("image",image).put("crop",crop).put("typography",typography).put("surface",surface)
+        .put("secondaryZone",secondaryZone).put("showDate",showDate).put("showWeekday",showWeekday)
+        .put("alignment",alignment).put("caption",caption).put("label",label).put("corners",corners)
+        .put("images",org.json.JSONArray(images)).put("apps",org.json.JSONArray(apps)).toString()
     companion object {
         fun parse(value: String?, fallback: WidgetKind): WidgetConfig = runCatching {
-            val j = JSONObject(value ?: "{}"); val k = WidgetKind.entries.firstOrNull { it.name == j.optString("kind") } ?: fallback
-            WidgetConfig(k, j.optBoolean("light", WidgetConfig(k).light),
-                j.optString("accent", "#D8FF62").takeIf { it.matches(Regex("#[0-9a-fA-F]{6}")) } ?: "#D8FF62",
-                j.optString("selection", WidgetConfig(k).selection), j.optString("timezone", "device"), j.optBoolean("hour24", true),
-                j.optInt("rows", 5).coerceIn(3, 10), j.optString("image"),
-                j.optString("crop", "center"), j.optString("typography", "editorial"))
+            val j=JSONObject(value ?: "{}"); val old=j.optString("kind")
+            val k=WidgetKind.entries.firstOrNull{it.name==old} ?: if(old=="AGENDA") WidgetKind.DATE else fallback
+            val defaults=WidgetConfig(k)
+            fun list(key: String)=j.optJSONArray(key)?.let{a->(0 until a.length()).map{a.optString(it)}.filter{it.isNotBlank()}.take(6)} ?: emptyList()
+            defaults.copy(light=j.optBoolean("light",defaults.light),
+                accent=j.optString("accent",defaults.accent).takeIf{it.matches(Regex("#[0-9a-fA-F]{6}"))} ?: defaults.accent,
+                selection=j.optString("selection",defaults.selection),timezone=j.optString("timezone","device"),
+                hour24=j.optBoolean("hour24",true),rows=j.optInt("rows",5).coerceIn(3,10),
+                image=j.optString("image"),crop=j.optString("crop","center").takeIf{it in listOf("center","top","bottom","left","right")} ?: "center",
+                typography=j.optString("typography","design").takeIf{it in listOf("design","sans","condensed","serif","technical","mono","dots","editorial")} ?: "design",
+                surface=j.optString("surface",defaults.surface).takeIf{it in listOf("transparent","solid","tint","glass","outline","semi")} ?: defaults.surface,
+                secondaryZone=j.optString("secondaryZone","Europe/London"),showDate=j.optBoolean("showDate",true),showWeekday=j.optBoolean("showWeekday",true),
+                alignment=j.optString("alignment","design"),caption=j.optString("caption").take(120),label=j.optString("label",defaults.label).take(60),
+                images=list("images"),apps=list("apps"),corners=j.optInt("corners",24).coerceIn(0,40))
         }.getOrDefault(WidgetConfig(fallback))
     }
 }

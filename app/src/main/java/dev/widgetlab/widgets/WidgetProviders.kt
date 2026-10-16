@@ -24,8 +24,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 object ProviderCatalog {
-    val classes = listOf(DriverWidget::class.java, ConstructorWidget::class.java, DriverStandingsWidget::class.java, ConstructorStandingsWidget::class.java, WeekendWidget::class.java, CountdownWidget::class.java, ResultsWidget::class.java, EditorialWidget::class.java, GlassWidget::class.java, VinylWidget::class.java, BrutalistWidget::class.java, MatrixWidget::class.java, CassetteWidget::class.java, CompactWidget::class.java, ClockWidget::class.java, DateWidget::class.java, BatteryWidget::class.java, AgendaWidget::class.java, SwissWidget::class.java)
-    fun component(context: Context, kind: WidgetKind) = ComponentName(context, classes[kind.ordinal])
+    val classes = ProviderTypes.classes
+    fun component(context: Context, kind: WidgetKind) = ComponentName(context, classes.getValue(kind))
     fun kind(context: Context, id: Int): WidgetKind? {
         val provider = AppWidgetManager.getInstance(context).getAppWidgetInfo(id)?.provider ?: return null
         return WidgetKind.entries.firstOrNull { component(context,it)==provider }
@@ -49,44 +49,26 @@ abstract class LabProvider : AppWidgetProvider() {
         }
     }
 }
-class DriverWidget: LabProvider()
-class ConstructorWidget: LabProvider()
-class DriverStandingsWidget: LabProvider()
-class ConstructorStandingsWidget: LabProvider()
-class WeekendWidget: LabProvider()
-class CountdownWidget: LabProvider()
-class ResultsWidget: LabProvider()
-class EditorialWidget: LabProvider()
-class GlassWidget: LabProvider()
-class VinylWidget: LabProvider()
-class BrutalistWidget: LabProvider()
-class MatrixWidget: LabProvider()
-class CassetteWidget: LabProvider()
-class CompactWidget: LabProvider()
-class ClockWidget: LabProvider()
-class DateWidget: LabProvider()
-class BatteryWidget: LabProvider()
-class AgendaWidget: LabProvider()
-class SwissWidget: LabProvider()
 
 object WidgetUpdates {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val mutex=Mutex()
     private val requests=Channel<Context>(Channel.CONFLATED)
-    init { scope.launch { for(context in requests) { delay(180); updateAll(context) } } }
-    fun request(context: Context, @Suppress("UNUSED_PARAMETER") musicOnly: Boolean = false) { requests.trySend(context.applicationContext) }
+    private val fullRequested=java.util.concurrent.atomic.AtomicBoolean(false)
+    init { scope.launch { for(context in requests) { delay(180); updateIds(context,null,musicOnly=!fullRequested.getAndSet(false)) } } }
+    fun request(context: Context, musicOnly: Boolean = false) { if(!musicOnly)fullRequested.set(true); requests.trySend(context.applicationContext) }
     suspend fun updateAll(context: Context) = updateIds(context,null)
-    suspend fun updateIds(context: Context,ids: Set<Int>?) = mutex.withLock {
-        val installed=ProviderCatalog.installed(context).filter { ids==null || it.first in ids }
+    suspend fun updateIds(context: Context,ids: Set<Int>?,musicOnly:Boolean=false) = mutex.withLock {
+        val installed=ProviderCatalog.installed(context).filter { (ids==null || it.first in ids) && (!musicOnly||it.second.isMusic) }
         if(installed.isEmpty()) return@withLock
         val snapshot=RacingRepository(context).snapshot()
         val battery=DeviceData.battery(context)
-        val agenda=if(installed.any { it.second==WidgetKind.AGENDA }) DeviceData.agenda(context) else AgendaData(false, emptyList())
+        val agenda=if(installed.any { it.second.hasAgenda }) DeviceData.agenda(context) else AgendaData(false, emptyList())
         installed.forEach { (id, kind) ->
             try {
                 val config=ConfigStore(context).read(id,kind).copy(kind=kind)
                 val media=MediaHub.info(config.selection)
-                val data=RenderData(snapshot,media,battery,agenda,MediaHub.permitted(context))
+                val data=RenderData(snapshot,media,battery,agenda,MediaHub.permitted(context),focus=readFocus(context))
                 update(context,id,config,data)
             } catch (e: Exception) { android.util.Log.w("WidgetLab","Widget $id update failed: ${e.javaClass.simpleName}") }
         }
@@ -94,58 +76,19 @@ object WidgetUpdates {
     fun update(context: Context,id: Int,cfg: WidgetConfig,data: RenderData) {
         val manager=AppWidgetManager.getInstance(context)
         val options=manager.getAppWidgetOptions(id)
-        val dpWidth=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280).coerceAtLeast(180)
-        val dpHeight=options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,cfg.kind.height*280/420).coerceAtLeast(64)
-        val density=context.resources.displayMetrics.density.coerceAtMost(2.5f)
-        val width=(dpWidth*density).toInt().coerceIn(280,720)
-        val height=(width*dpHeight/dpWidth).coerceAtLeast(90).coerceAtMost(420_000/width)
-        val renderer=WidgetRenderer(context)
-        val views=RemoteViews(context.packageName,R.layout.widget_surface)
-        views.setImageViewBitmap(R.id.surface,renderer.render(cfg,data,width,height,preview=false))
-        val edit=Intent(context,WidgetConfigureActivity::class.java).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id).setData(android.net.Uri.parse("widgetlab://configure/$id"))
-        val configure=PendingIntent.getActivity(context,id,edit,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        var rootAction=configure
-        if(cfg.kind.isMusic && data.mediaAccess) {
-            val launch=data.media.packageName.takeIf { it.isNotBlank() }?.let { context.packageManager.getLaunchIntentForPackage(it) }
-            rootAction=data.media.open ?: launch?.let { PendingIntent.getActivity(context,id+10000,it,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) } ?: configure
-        }
-        views.setOnClickPendingIntent(R.id.widget_root,rootAction)
-        views.setOnClickPendingIntent(R.id.surface,rootAction)
-        val readable=when { cfg.kind.isMusic -> "${cfg.kind.title}. ${data.media.title}. ${data.media.artist}. ${if(data.media.playing) "Playing" else "Paused"}. Tap to open player or configure."
-            cfg.kind==WidgetKind.BATTERY -> "Battery ${data.battery.percent?:"unknown"} percent. ${if(data.battery.charging) "Charging" else "On battery"}."
-            cfg.kind==WidgetKind.AGENDA -> if(data.agenda.permitted) data.agenda.events.joinToString(". "){ it.title } else "Calendar access required. Tap to configure."
-            else -> cfg.kind.title+". Tap to configure."
-        }
-        views.setContentDescription(R.id.surface,readable)
-        val ink=if(cfg.light) Color.rgb(21,23,23) else Color.rgb(245,244,237)
-        if(cfg.kind.isMusic) {
-            views.setViewVisibility(R.id.transport,View.VISIBLE)
-            if(cfg.kind==WidgetKind.COMPACT) views.setViewVisibility(R.id.previous,View.GONE)
-            listOf(R.id.previous to "previous",R.id.toggle to "toggle",R.id.next to "next").forEach { (viewId,action) ->
-                val supported=data.mediaAccess && when(action) { "previous" -> data.media.previous; "next" -> data.media.next; else -> data.media.toggle }
-                val intent=Intent(context,WidgetActionReceiver::class.java).setAction("dev.widgetlab.MEDIA").setData(android.net.Uri.parse("widgetlab://media/$id/$action")).putExtra("widgetId",id).putExtra("control",action)
-                views.setOnClickPendingIntent(viewId,if(supported) PendingIntent.getBroadcast(context,id*10+viewId,intent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) else configure)
-                views.setTextColor(viewId,if(supported) { if(cfg.kind==WidgetKind.GLASS) Color.WHITE else ink } else if(cfg.light) Color.GRAY else Color.DKGRAY)
-                views.setContentDescription(viewId,if(supported) when(action) { "previous"->"Previous track";"next"->"Next track";else->if(data.media.playing)"Pause" else "Play" } else "${action.replaceFirstChar{it.uppercase()}} unavailable. Open configuration.")
-            }
-            views.setTextViewText(R.id.toggle,if(data.media.playing) "Ⅱ" else "▶")
-        }
-        if(cfg.kind.isClock) {
-            views.setViewVisibility(R.id.clock_group,View.VISIBLE)
-            val format=if(cfg.hour24) "HH:mm" else "h:mm"
-            listOf(R.id.time,R.id.clock_date).forEach { v -> views.setString(v,"setTimeZone",cfg.zone().id);views.setTextColor(v,ink);views.setOnClickPendingIntent(v,configure) }
-            views.setCharSequence(R.id.time,"setFormat12Hour",format);views.setCharSequence(R.id.time,"setFormat24Hour",format)
-            val date=if(cfg.hour24) "EEEE, dd MMMM" else "a · EEEE, dd MMMM"
-            views.setCharSequence(R.id.clock_date,"setFormat12Hour",date);views.setCharSequence(R.id.clock_date,"setFormat24Hour",date)
-            views.setTextViewTextSize(R.id.time,TypedValue.COMPLEX_UNIT_SP,(dpWidth*.22f).coerceIn(38f,88f))
-        }
-        if(cfg.kind==WidgetKind.DATE) {
-            views.setViewVisibility(R.id.date_group,View.VISIBLE)
-            listOf(R.id.date_day,R.id.date_month).forEach { v -> views.setString(v,"setTimeZone",cfg.zone().id);views.setTextColor(v,ink);views.setOnClickPendingIntent(v,configure) }
-            views.setTextViewTextSize(R.id.date_day,TypedValue.COMPLEX_UNIT_SP,(dpWidth*.26f).coerceIn(42f,100f))
+        val portrait=android.util.SizeF(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,300).coerceAtLeast(100).toFloat(),options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,cfg.kind.height*300/420).coerceAtLeast(54).toFloat())
+        val landscape=android.util.SizeF(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,portrait.width.toInt()).coerceAtLeast(100).toFloat(),options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,portrait.height.toInt()).coerceAtLeast(54).toFloat())
+        val density=context.resources.displayMetrics.density.coerceIn(1f,2.5f)
+        val views=if(android.os.Build.VERSION.SDK_INT>=31) {
+            @Suppress("DEPRECATION") val sizes=options.getParcelableArrayList<android.util.SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES)?.distinct()?.filter{it.width>=80 && it.height>=48}?.take(6).orEmpty().ifEmpty{listOf(portrait,landscape).distinct()}
+            val map=sizes.associateWith{size->WidgetViews.build(context,id,cfg,data,size.width,size.height,density,420_000/sizes.size)}
+            RemoteViews(map)
+        }else{
+            RemoteViews(WidgetViews.build(context,id,cfg,data,landscape.width,landscape.height,density,210_000),WidgetViews.build(context,id,cfg,data,portrait.width,portrait.height,density,210_000))
         }
         manager.updateAppWidget(id,views)
     }
+
 }
 
 class WidgetActionReceiver: BroadcastReceiver() {

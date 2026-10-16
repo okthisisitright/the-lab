@@ -28,3 +28,11 @@ Source code licensing of a provider does not grant rights to unrelated racing tr
 Kotlin and kotlinx.coroutines (JetBrains), AndroidX Compose, Activity, Lifecycle, DataStore, WorkManager (Android Open Source Project): Apache License 2.0, https://www.apache.org/licenses/LICENSE-2.0 . JUnit: EPL 1.0 (tests only). Robolectric: MIT (tests only). AndroidX Test: Apache 2.0 (tests only). org.json: JSON License (test tooling only); Android platform JSON APIs are used in the application. Gradle: Apache 2.0.
 
 Reference screenshots supplied in the conversation are used as art direction. They are not bundled in the application. Circuit and fallback graphics are original Canvas drawings.
+
+## Edition II typography
+
+Inter (Rasmus Andersson / Inter Project), Barlow Condensed (Jeremy Tribby), Bodoni Moda (indestructible type / Owen Earl), Rajdhani (Indian Type Foundry), IBM Plex Mono (IBM), Doto (Doto Project Authors): SIL Open Font License 1.1. Fonts downloaded unchanged from the corresponding directories under https://github.com/google/fonts/tree/main/ofl . Full per-font notices and license texts are bundled as INTER-OFL.txt, CONDENSED-OFL.txt, SERIF-OFL.txt, TECHNICAL-OFL.txt, MONO-OFL.txt and DOTS-OFL.txt.
+
+## Clearly labeled gallery art studies
+
+NASA Apollo 15, AS15-87-11849, “View of Mount Hadley as photographed by Apollo 15 during EVA”, 1971. NASA Apollo 17, AS17-148-22727, Earth photograph, 1972. Source: NASA Image and Video Library, https://images.nasa.gov/ . Bundled medium-resolution photographs are provided as explicitly labeled gallery-only layout studies; no installed widget substitutes these for media-session artwork or user-selected photos. NASA media usage guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/ . U.S. government NASA photographs are not copyrighted; NASA insignia/endorsement rights are not conveyed. No NASA logo is used as Widget Lab branding.

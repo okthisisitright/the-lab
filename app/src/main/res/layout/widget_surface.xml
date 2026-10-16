@@ -1,16 +1,22 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="0dp">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/surface" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:contentDescription="Widget Lab" />
-    <LinearLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="44dp" android:layout_gravity="bottom" android:gravity="end|center_vertical" android:paddingEnd="12dp" android:orientation="horizontal" android:visibility="gone">
-        <TextView android:id="@+id/previous" android:layout_width="52dp" android:layout_height="44dp" android:gravity="center" android:text="│◀" android:textSize="23sp" android:contentDescription="Previous track" />
-        <TextView android:id="@+id/toggle" android:layout_width="52dp" android:layout_height="44dp" android:gravity="center" android:text="▶" android:textSize="26sp" android:contentDescription="Play" />
-        <TextView android:id="@+id/next" android:layout_width="52dp" android:layout_height="44dp" android:gravity="center" android:text="▶│" android:textSize="23sp" android:contentDescription="Next track" />
+    <FrameLayout android:id="@+id/clock_slot0" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+        <TextClock android:id="@+id/time" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/inter" android:textFontWeight="500" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
+    </FrameLayout>
+    <FrameLayout android:id="@+id/clock_slot1" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+        <TextClock android:id="@+id/clock_second" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/inter" android:textFontWeight="500" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
+    </FrameLayout>
+    <FrameLayout android:id="@+id/clock_slot2" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+        <TextClock android:id="@+id/clock_date" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/inter" android:textFontWeight="400" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
+    </FrameLayout>
+    <FrameLayout android:id="@+id/clock_slot3" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+        <TextClock android:id="@+id/clock_extra" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/inter" android:textFontWeight="400" android:textStyle="normal" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
+    </FrameLayout>
+    <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:visibility="gone" android:dial="@drawable/dial_light" android:hand_hour="@drawable/hand_hour_light" android:hand_minute="@drawable/hand_minute_light" />
+    <LinearLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="48dp" android:layout_gravity="bottom" android:gravity="end|center_vertical" android:paddingEnd="12dp" android:orientation="horizontal" android:visibility="gone">
+        <ImageView android:id="@+id/previous" android:layout_width="44dp" android:layout_height="44dp" android:padding="13dp" android:src="@drawable/control_previous" android:contentDescription="previous" />
+        <ImageView android:id="@+id/toggle" android:layout_width="44dp" android:layout_height="44dp" android:padding="13dp" android:src="@drawable/control_play" android:contentDescription="toggle" />
+        <ImageView android:id="@+id/next" android:layout_width="44dp" android:layout_height="44dp" android:padding="13dp" android:src="@drawable/control_next" android:contentDescription="next" />
     </LinearLayout>
-    <LinearLayout android:id="@+id/clock_group" android:layout_width="match_parent" android:layout_height="match_parent" android:paddingStart="18dp" android:paddingEnd="18dp" android:paddingTop="32dp" android:paddingBottom="14dp" android:gravity="bottom" android:orientation="vertical" android:visibility="gone">
-        <TextClock android:id="@+id/time" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center_vertical|start" android:fontFamily="@font/space_grotesk" android:textStyle="bold" android:textSize="62sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
-        <TextClock android:id="@+id/clock_date" android:layout_width="match_parent" android:layout_height="26dp" android:textSize="13sp" android:format12Hour="EEEE, dd MMMM" android:format24Hour="EEEE, dd MMMM" />
-    </LinearLayout>
-    <LinearLayout android:id="@+id/date_group" android:layout_width="match_parent" android:layout_height="match_parent" android:paddingStart="18dp" android:paddingEnd="18dp" android:paddingTop="29dp" android:paddingBottom="40dp" android:orientation="horizontal" android:gravity="center_vertical" android:visibility="gone">
-        <TextClock android:id="@+id/date_day" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center_vertical" android:textSize="72sp" android:fontFamily="@font/space_grotesk" android:textStyle="bold" android:format12Hour="dd" android:format24Hour="dd" />
-        <TextClock android:id="@+id/date_month" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center_vertical" android:textSize="21sp" android:format12Hour="MMM\nEEEE · yyyy" android:format24Hour="MMM\nEEEE · yyyy" />
-    </LinearLayout>
+    <LinearLayout android:id="@+id/shortcut_host" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone" />
 </FrameLayout>

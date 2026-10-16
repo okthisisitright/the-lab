@@ -1,0 +1,108 @@
+package dev.widgetlab.widgets
+
+import dev.widgetlab.core.WidgetKind
+
+object ProviderTypes {
+    val classes=mapOf(
+        WidgetKind.DRIVER to DriverWidget::class.java,
+        WidgetKind.MINIMAL_DRIVER to MinimalDriverWidget::class.java,
+        WidgetKind.CONSTRUCTOR to ConstructorWidget::class.java,
+        WidgetKind.DRIVER_PODIUM to DriverPodiumWidget::class.java,
+        WidgetKind.DRIVER_STANDINGS to DriverStandingsWidget::class.java,
+        WidgetKind.TEAM_PODIUM to TeamPodiumWidget::class.java,
+        WidgetKind.CONSTRUCTOR_STANDINGS to ConstructorStandingsWidget::class.java,
+        WidgetKind.WEEKEND to WeekendWidget::class.java,
+        WidgetKind.WEEKEND_EDITORIAL to WeekendEditorialWidget::class.java,
+        WidgetKind.COUNTDOWN to CountdownWidget::class.java,
+        WidgetKind.RESULTS to ResultsWidget::class.java,
+        WidgetKind.CIRCUIT to CircuitWidget::class.java,
+        WidgetKind.COMPACT to CompactWidget::class.java,
+        WidgetKind.EDITORIAL to EditorialWidget::class.java,
+        WidgetKind.GLASS to GlassWidget::class.java,
+        WidgetKind.VINYL to VinylWidget::class.java,
+        WidgetKind.BRUTALIST to BrutalistWidget::class.java,
+        WidgetKind.MATRIX to MatrixWidget::class.java,
+        WidgetKind.CASSETTE to CassetteWidget::class.java,
+        WidgetKind.ARTWORK to ArtworkWidget::class.java,
+        WidgetKind.CLOCK to ClockWidget::class.java,
+        WidgetKind.THIN to ThinWidget::class.java,
+        WidgetKind.SWISS to SwissWidget::class.java,
+        WidgetKind.CINEMATIC to CinematicWidget::class.java,
+        WidgetKind.GLASS_CLOCK to GlassClockWidget::class.java,
+        WidgetKind.BRUTAL_CLOCK to BrutalClockWidget::class.java,
+        WidgetKind.DIGITAL to DigitalWidget::class.java,
+        WidgetKind.DOT_CLOCK to DotClockWidget::class.java,
+        WidgetKind.SPLIT to SplitWidget::class.java,
+        WidgetKind.VERTICAL to VerticalWidget::class.java,
+        WidgetKind.CORNER to CornerWidget::class.java,
+        WidgetKind.DUAL to DualWidget::class.java,
+        WidgetKind.ANALOG to AnalogWidget::class.java,
+        WidgetKind.SERIF to SerifWidget::class.java,
+        WidgetKind.TERMINAL to TerminalWidget::class.java,
+        WidgetKind.PHOTO to PhotoWidget::class.java,
+        WidgetKind.FRAME to FrameWidget::class.java,
+        WidgetKind.POLAROID to PolaroidWidget::class.java,
+        WidgetKind.FILMSTRIP to FilmstripWidget::class.java,
+        WidgetKind.COLLAGE to CollageWidget::class.java,
+        WidgetKind.BATTERY to BatteryWidget::class.java,
+        WidgetKind.BATTERY_EDITORIAL to BatteryEditorialWidget::class.java,
+        WidgetKind.FOCUS to FocusWidget::class.java,
+        WidgetKind.DATE to DateWidget::class.java,
+        WidgetKind.TODAY to TodayWidget::class.java,
+        WidgetKind.LABEL to LabelWidget::class.java,
+        WidgetKind.STRIP to StripWidget::class.java,
+        WidgetKind.LAUNCHER to LauncherWidget::class.java,
+        WidgetKind.GRID to GridWidget::class.java,
+        WidgetKind.SECTION to SectionWidget::class.java
+    )
+}
+class DriverWidget: LabProvider()
+class MinimalDriverWidget: LabProvider()
+class ConstructorWidget: LabProvider()
+class DriverPodiumWidget: LabProvider()
+class DriverStandingsWidget: LabProvider()
+class TeamPodiumWidget: LabProvider()
+class ConstructorStandingsWidget: LabProvider()
+class WeekendWidget: LabProvider()
+class WeekendEditorialWidget: LabProvider()
+class CountdownWidget: LabProvider()
+class ResultsWidget: LabProvider()
+class CircuitWidget: LabProvider()
+class CompactWidget: LabProvider()
+class EditorialWidget: LabProvider()
+class GlassWidget: LabProvider()
+class VinylWidget: LabProvider()
+class BrutalistWidget: LabProvider()
+class MatrixWidget: LabProvider()
+class CassetteWidget: LabProvider()
+class ArtworkWidget: LabProvider()
+class ClockWidget: LabProvider()
+class ThinWidget: LabProvider()
+class SwissWidget: LabProvider()
+class CinematicWidget: LabProvider()
+class GlassClockWidget: LabProvider()
+class BrutalClockWidget: LabProvider()
+class DigitalWidget: LabProvider()
+class DotClockWidget: LabProvider()
+class SplitWidget: LabProvider()
+class VerticalWidget: LabProvider()
+class CornerWidget: LabProvider()
+class DualWidget: LabProvider()
+class AnalogWidget: LabProvider()
+class SerifWidget: LabProvider()
+class TerminalWidget: LabProvider()
+class PhotoWidget: LabProvider()
+class FrameWidget: LabProvider()
+class PolaroidWidget: LabProvider()
+class FilmstripWidget: LabProvider()
+class CollageWidget: LabProvider()
+class BatteryWidget: LabProvider()
+class BatteryEditorialWidget: LabProvider()
+class FocusWidget: LabProvider()
+class DateWidget: LabProvider()
+class TodayWidget: LabProvider()
+class LabelWidget: LabProvider()
+class StripWidget: LabProvider()
+class LauncherWidget: LabProvider()
+class GridWidget: LabProvider()
+class SectionWidget: LabProvider()

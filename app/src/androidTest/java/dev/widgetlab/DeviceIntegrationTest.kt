@@ -80,9 +80,10 @@ class DeviceIntegrationTest {
                     val view=host.createView(context,id,info)
                     assertNotNull("Host view ${kind.title}",view)
                     // Validate that the real RemoteViews layout is accepted by Android's inflater.
-                    val layout=RemoteViews(context.packageName,R.layout.widget_surface).apply(context,view)
+                    val data=RenderData(RacingRepository(context).snapshot(),MediaInfo(),DeviceData.battery(context),DeviceData.agenda(context),false,focus=readFocus(context))
+                    val layout=WidgetViews.build(context,id,WidgetConfig(kind),data,280f,kind.height*280f/420).apply(context,view)
                     assertNotNull(layout.findViewById<android.view.View>(R.id.surface))
-                    assertTrue(layout.findViewById<TextClock>(R.id.time) is TextClock)
+                    if(kind.isClock && kind!=WidgetKind.ANALOG)assertTrue(layout.findViewById<TextClock>(R.id.clock_text) is TextClock)
                 }
             }
         } finally {ids.forEach{host.deleteAppWidgetId(it);ConfigStore(context).delete(it)};instrumentation.runOnMainSync{host.stopListening()};host.deleteHost()}

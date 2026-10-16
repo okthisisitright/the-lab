@@ -32,7 +32,7 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+          script: bash tools/device-check.sh
       - name: Device test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -41,4 +41,5 @@ jobs:
           path: |
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
+            app/build/device-visuals/
           retention-days: 14

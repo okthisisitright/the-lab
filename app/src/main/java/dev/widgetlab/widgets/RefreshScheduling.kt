@@ -17,7 +17,10 @@ class LabApplication: Application() {
     private val batteryChanges=object: BroadcastReceiver() { override fun onReceive(context: Context,intent: Intent) {WidgetUpdates.request(context)} }
     override fun onCreate() {
         super.onCreate()
-        registerReceiver(batteryChanges,IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        registerReceiver(batteryChanges,IntentFilter().apply {
+            addAction(Intent.ACTION_BATTERY_CHANGED)
+            addAction(android.app.NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED)
+        })
         RefreshScheduling.ensure(this)
         MediaHub.connect(this)
     }
@@ -49,7 +52,7 @@ class SystemReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context,intent: Intent) {
         if(intent.action !in setOf(Intent.ACTION_BOOT_COMPLETED,Intent.ACTION_MY_PACKAGE_REPLACED,
                 Intent.ACTION_TIMEZONE_CHANGED,Intent.ACTION_TIME_CHANGED,Intent.ACTION_DATE_CHANGED,
-                Intent.ACTION_LOCALE_CHANGED,Intent.ACTION_POWER_CONNECTED,Intent.ACTION_POWER_DISCONNECTED)) return
+                Intent.ACTION_LOCALE_CHANGED,android.app.NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED,Intent.ACTION_POWER_CONNECTED,Intent.ACTION_POWER_DISCONNECTED)) return
         RefreshScheduling.ensure(context)
         val pending=goAsync();WidgetUpdates.scope.launch {try{WidgetUpdates.updateAll(context.applicationContext)}finally{pending.finish()}}
     }

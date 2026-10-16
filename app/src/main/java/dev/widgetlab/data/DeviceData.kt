@@ -40,3 +40,9 @@ object DeviceData {
           catch (_: Exception) { AgendaData(true, emptyList(), true) }
     }
 }
+
+data class FocusInfo(val filter:Int=0) {
+    val title get()=when(filter){1->"Available";2->"Priority only";3->"Do not disturb";4->"Alarms only";else->"Status unavailable"}
+    val active get()=filter in 2..4
+}
+fun readFocus(context:Context):FocusInfo = runCatching {FocusInfo(context.getSystemService(android.app.NotificationManager::class.java).currentInterruptionFilter)}.getOrDefault(FocusInfo())

@@ -1,0 +1,16 @@
+package dev.widgetlab.ui
+
+import android.content.Context
+import dev.widgetlab.core.WidgetConfig
+import dev.widgetlab.core.WidgetKind
+import dev.widgetlab.media.MediaInfo
+import dev.widgetlab.widgets.ArtCache
+import dev.widgetlab.widgets.RenderData
+
+/** Explicit gallery-only art studies. Installed widgets always receive actual device/session data. */
+object PreviewSamples {
+    fun music(data:RenderData)=data.media.packageName.isBlank()
+    fun photo(config:WidgetConfig)=config.kind.isPhoto&&config.photos.isEmpty()
+    fun config(config:WidgetConfig)=if(photo(config))config.copy(image="study/hadley",images=listOf("study/hadley","study/earth","study/hadley"),caption=config.caption.ifBlank{if(config.kind==WidgetKind.POLAROID)"Hadley / 1971" else ""}) else config
+    fun data(context:Context,config:WidgetConfig,data:RenderData)=if(config.kind.isMusic&&music(data))data.copy(media=MediaInfo("Nocturne / study","Sample artwork · Widget Lab",ArtCache.get(context,"study/hadley")),mediaAccess=true) else data
+}
