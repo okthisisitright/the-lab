@@ -77,7 +77,7 @@ object WidgetViews {
         }
         if(cfg.kind.isMusic){
             views.setViewVisibility(R.id.transport,View.VISIBLE)
-            if(cfg.kind==WidgetKind.COMPACT||h<148)views.setViewVisibility(R.id.previous,View.GONE)
+            if(musicIsCompact(cfg.kind,h))views.setViewVisibility(R.id.previous,View.GONE)
             listOf(R.id.previous to "previous",R.id.toggle to "toggle",R.id.next to "next").forEach{(view,action)->
                 val supported=data.mediaAccess&&when(action){"previous"->data.media.previous;"next"->data.media.next;else->data.media.toggle}
                 val intent=Intent(context,WidgetActionReceiver::class.java).setAction("dev.widgetlab.MEDIA").setData(Uri.parse("widgetlab://media/$id/$action")).putExtra("widgetId",id).putExtra("control",action)

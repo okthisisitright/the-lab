@@ -90,3 +90,5 @@ fun shortcutPlan(cfg:WidgetConfig,w:Float,h:Float):ShortcutPlan {
     val rows=if(cfg.kind==WidgetKind.STRIP)1 else min(ceil(count.toFloat()/columns).toInt(),((h-top-p)/44).toInt().coerceIn(1,3))
     return ShortcutPlan(Bounds(p,top,w-2*p,h-top-p),columns,rows)
 }
+
+fun musicIsCompact(kind:WidgetKind,height:Float)=kind==WidgetKind.COMPACT || height<148f || (kind in listOf(WidgetKind.EDITORIAL,WidgetKind.BRUTALIST)&&height<200f)

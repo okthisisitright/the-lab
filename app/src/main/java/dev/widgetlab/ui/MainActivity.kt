@@ -142,7 +142,7 @@ private val Mono=FontFamily(Font(R.font.mono))
         }
     }
     val artwork=rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()){uri->importPhotos(listOfNotNull(uri))}
-    val multiArtwork=rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)){uris->importPhotos(uris)}
+    val multiArtwork=rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(if(config.kind==WidgetKind.COLLAGE)3 else 4)){uris->importPhotos(uris)}
     fun refresh() {scope.launch {busy=true;val errors=RacingRepository(context).refresh();WidgetUpdates.updateAll(context);version++;busy=false;message=if(errors.isEmpty())"Racing feeds refreshed." else errors.joinToString("\n")}}
     fun save() {
         store.remember(config);recent=store.recent()
@@ -328,7 +328,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
             }}
             if(cfg.kind.isPhoto){item{
                 Rule();Eyebrow("YOUR PHOTOGRAPHS")
-                Spacer(Modifier.height(12.dp));Action(if(cfg.kind in listOf(WidgetKind.FILMSTRIP,WidgetKind.COLLAGE))"Choose up to 6 photographs  +" else "Choose photograph  +",onArtwork,enabled=!busy)
+                Spacer(Modifier.height(12.dp));Action(if(cfg.kind==WidgetKind.FILMSTRIP)"Choose up to 4 photographs  +" else if(cfg.kind==WidgetKind.COLLAGE)"Choose 3 photographs  +" else "Choose photograph  +",onArtwork,enabled=!busy)
                 Text("Android's photo picker grants access only to your selection. Optimized copies remain in private app storage after restart.",color=Soft,fontSize=11.sp,lineHeight=18.sp,modifier=Modifier.padding(top=10.dp))
                 if(cfg.photos.isNotEmpty())OptionRow("SELECTED IMAGES","${cfg.photos.size} · tap to clear"){onChange(cfg.copy(image="",images=emptyList()))}
                 if(cfg.kind in listOf(WidgetKind.FRAME,WidgetKind.POLAROID))Field("CAPTION",cfg.caption){onChange(cfg.copy(caption=it.take(120)))}

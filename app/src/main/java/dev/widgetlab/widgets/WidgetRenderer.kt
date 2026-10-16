@@ -119,7 +119,7 @@ class WidgetRenderer(private val context:Context) {
             val team=driver.teams.firstOrNull().orEmpty();val color=Color.parseColor(teamColor(team))
             val portrait=art() ?: if(driver.id=="hamilton")ArtCache.get(context,"archive/hamilton") else null
             val minimal=cfg.kind==WidgetKind.MINIMAL_DRIVER
-            if(compact){
+            if(h<180){
                 val textRight=if(minimal)w-pad else w*.68f
                 if(!minimal){rect(w*.71f,0f,w*.29f,h-18,color);photograph(portrait,Bounds(w*.71f,0f,w*.29f,h-18),empty=false)}
                 label("${table.season} / DRIVER",pad,17f,max=textRight-pad)
@@ -159,7 +159,7 @@ class WidgetRenderer(private val context:Context) {
             if(team==null){text("Team unavailable",pad,h*.5f,24f);footer(s);return}
             val color=Color.parseColor(teamColor(team.id))
             val art=art()
-            if(compact){
+            if(h<190){
                 rect(0f,0f,4f,h,color)
                 fit(team.name.uppercase(),pad,35f,27f,inner,ink,"condensed")
                 text("P${team.position}",pad,h-28,32f,ink,"condensed",700,inner*.35f)
@@ -189,7 +189,7 @@ class WidgetRenderer(private val context:Context) {
             val season=if(teams)d.racing.teams.value.season else d.racing.drivers.value.season
             label("${if(teams)"CONSTRUCTORS" else "DRIVERS"} / $season")
             if(names.isEmpty()){text("Not published",pad,h*.55f,23f);footer(s);return}
-            if(compact&&!teams){
+            if(h<200&&!teams){
                 val col=inner/3
                 names.forEachIndexed{i,e->val x=pad+i*col
                     label("0${i+1}",x,40f,max=col-8)
@@ -297,7 +297,7 @@ class WidgetRenderer(private val context:Context) {
             if(race==null){text("Season complete",pad,h*.5f,24f);footer(s);return}
             val duration=race.start?.let{Duration.between(d.now,it)}
             val future=duration!=null&&!duration.isNegative
-            if(compact){
+            if(h<180){
                 fit(race.name.removeSuffix(" Grand Prix").uppercase(),pad,h*.47f,22f,inner*.62f)
                 fit(if(future)"${duration!!.toDays()}d ${duration.toHours()%24}h" else if(s.sample)"ARCHIVE" else "TBA",w*.68f,h*.55f,26f,w*.32f-pad,accent,"technical")
             }else{
@@ -313,7 +313,7 @@ class WidgetRenderer(private val context:Context) {
             val s=d.racing.result;val r=s.value
             label("FINAL / CLASSIFICATION",color=accent)
             if(r==null||r.finishers.isEmpty()){text("No result published",pad,h*.5f,23f);footer(s);return}
-            if(compact){
+            if(h<200){
                 val winner=r.finishers.first()
                 fit(r.race.name.removeSuffix(" Grand Prix").uppercase(),pad,48f,24f,inner)
                 text("01 / ${winner.code}",pad,h-26,24f,Color.parseColor(teamColor(winner.team)),"condensed",700,inner*.5f)
@@ -331,7 +331,7 @@ class WidgetRenderer(private val context:Context) {
             footer(s,r.race.season)
         }
         fun circuitCard(){val race=next();val s=d.racing.schedule
-            if(compact){
+            if(h<180){
                 label("R${race?.round ?: "—"} / ${race?.season ?: "—"}",pad,18f,max=inner*.5f)
                 fit(race?.location ?: "Circuit",pad,53f,24f,inner*.5f)
                 label(race?.date?.toString() ?: "DATE TBA",pad,h-25,max=inner*.5f)
@@ -347,7 +347,7 @@ class WidgetRenderer(private val context:Context) {
         }
         fun transport(){
             if(!preview)return
-            val count=if(cfg.kind==WidgetKind.COMPACT||compact)2 else 3
+            val count=if(musicIsCompact(cfg.kind,h))2 else 3
             val start=w-12-count*44
             val actions=if(count==2)listOf("toggle","next") else listOf("previous","toggle","next")
             actions.forEachIndexed{i,a->val x=start+i*44+22;val y=h-24
@@ -362,7 +362,7 @@ class WidgetRenderer(private val context:Context) {
             val track=if(!d.mediaAccess)"Connect your player" else m.title
             val artist=if(!d.mediaAccess)"Enable media access" else m.artist
             val k=cfg.kind
-            if(k==WidgetKind.COMPACT||compact){
+            if(musicIsCompact(k,h)){
                 val size=min(h-20,w*.21f);photograph(cover,Bounds(10f,(h-size)/2,size,size),8f)
                 val x=size+22;val max=w-x-100
                 text(track,x,h*.42f,15f,ink,"sans",650,max)

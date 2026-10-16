@@ -14,7 +14,7 @@ Inter, Barlow Condensed, Bodoni Moda, Rajdhani, IBM Plex Mono and Doto provide s
 
 ## Images and personal organization
 
-Android's single/multiple photo picker grants access to selected images. ImageDecoder handles orientation and bounds imports to 1024 pixels; copies are stored privately, so they survive restart without temporary URI permissions. Center, top, bottom, left and right focal alignments are supported. Filmstrip/contact layouts retain up to six selections, displaying a size-appropriate composition; collage uses the first three. No broad storage permission is requested.
+Android's single/multiple photo picker grants access to selected images. ImageDecoder handles orientation and bounds imports to 1024 pixels; copies are stored privately, so they survive restart without temporary URI permissions. Center, top, bottom, left and right focal alignments are supported. Filmstrip selects up to four images; contact/collage selects up to three, displaying a size-appropriate composition. No broad storage permission is requested.
 
 Gallery-only photographic studies are explicitly labeled. NASA Apollo photographs illustrate music and photo layouts when no personal content/session exists; sample track metadata is labeled. Installed music widgets always receive actual media-session data. Photo widgets always use chosen private images or an honest empty state. These examples are not fake playback, and their controls are disabled.
 
