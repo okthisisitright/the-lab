@@ -185,7 +185,7 @@ class WidgetRenderer(private val context:Context) {
             if(art!=null)photograph(art,Bounds(0f,0f,w,artHeight)) else {
                 rect(0f,0f,w,artHeight,color)
                 text(team.name.uppercase(),pad,artHeight*.7f,min(62f,w*.18f),0xCC101418.toInt(),"condensed",700,inner)
-                label("PERSONAL CAR ART / OPTIONAL",pad,artHeight-12f,0xAA101418.toInt())
+                label("${d.racing.series} / CONSTRUCTOR",pad,artHeight-12f,0xAA101418.toInt())
             }
             val top=artHeight+20f
             label("WORKS / ${s.value.season}",pad,top)
@@ -511,7 +511,13 @@ class WidgetRenderer(private val context:Context) {
             when(cfg.kind){
                 WidgetKind.PHOTO->imageAt(0,Bounds(0f,0f,w,h),cfg.corners.toFloat())
                 WidgetKind.FRAME->{imageAt(0,Bounds(12f,12f,w-24,h-24-if(cfg.caption.isNotBlank())34 else 0),cfg.corners.toFloat());if(cfg.caption.isNotBlank())text(cfg.caption,pad,h-21,13f,ink,"sans",500,inner)}
-                WidgetKind.POLAROID->{rect(0f,0f,w,h,0xFFF5F0E4.toInt());imageAt(0,Bounds(13f,13f,w-26,h-72));text(cfg.caption,24f,h-29,20f,0xFF282C2B.toInt(),"serif",400,w-48)}
+                WidgetKind.POLAROID->{
+                    val margin=min(13f,min(w,h)*.045f)
+                    val band=min(60f,max(22f,h*.20f))
+                    rect(0f,0f,w,h,0xFFF5F0E4.toInt())
+                    imageAt(0,Bounds(margin,margin,w-2*margin,h-margin-band))
+                    text(cfg.caption,margin+8,h-band*.35f,min(20f,band*.5f),0xFF282C2B.toInt(),"serif",400,w-2*margin-16)
+                }
                 WidgetKind.FILMSTRIP->{
                     rect(0f,0f,w,h,0xFF111315.toInt());val count=files.size.coerceIn(2,4);val margin=14f;val gap=6f
                     val cell=(w-2*margin-(count-1)*gap)/count
