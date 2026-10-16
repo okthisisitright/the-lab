@@ -26,9 +26,9 @@ The smaller file and shared-downloads path may avoid the large-file timeout, but
 
 ## GitHub status
 
-GitHub authorization was reconnected successfully as **okthisisitright**. The local checkout still has **no git remote configured** and no Widget Lab repository exists in the accessible account. Creating the requested private `okthisisitright/widget-lab` repository was attempted through both GitHub CLI/GraphQL and the REST API. GitHub rejected creation with insufficient-permissions / **HTTP 403: Resource not accessible by integration**. No repository was created.
+Target repository: https://github.com/okthisisitright/the-lab . GitHub authentication is working and repository write access is available. The repository is currently public; the owner explicitly instructed proceeding with upload and will change its visibility later. Repository creation and visibility changes are not allowed by this connection, but those are no longer prerequisites for delivery.
 
-The user must create the empty private repository at https://github.com/new and grant the connection access to it, or provide another appropriate repository URL. Chat authorization does not expand the GitHub integration’s API permissions. No push, workflow dispatch, GitHub artifact upload or release upload has completed yet; no run/artifact URL exists yet. Do not paste tokens into chat.
+The workflow is committed and validated with actionlint. Exact release and Actions URLs must be confirmed after their respective uploads complete; creating a local APK or committing a workflow does not itself publish an artifact.
 
 ## Build and download through Actions
 
@@ -39,11 +39,11 @@ It now runs `:app:assembleDebug`, immediately uploads `app/build/outputs/apk/deb
 After connecting the intended repository and authorizing GitHub:
 
 ```sh
-# Only if origin has not already been configured; replace OWNER/REPO.
-git remote add origin https://github.com/OWNER/REPO.git
+# Only if origin has not already been configured; replace okthisisitright/the-lab.
+git remote add origin https://github.com/okthisisitright/the-lab.git
 git push -u origin main
-gh workflow run android.yml --repo OWNER/REPO --ref main
-gh run list --repo OWNER/REPO --workflow android.yml --limit 5
+gh workflow run android.yml --repo okthisisitright/the-lab --ref main
+gh run list --repo okthisisitright/the-lab --workflow android.yml --limit 5
 ```
 
 A push to main also starts the workflow; a manual dispatch is optional if a push run is already active. If the remote already contains commits, reconcile the histories normally before pushing; do not force-push over it.
@@ -60,7 +60,7 @@ Phone/browser steps:
 
 Artifact location after an actual run:
 
-- Run page: `https://github.com/OWNER/REPO/actions/runs/RUN_ID`
+- Run page: `https://github.com/okthisisitright/the-lab/actions/runs/RUN_ID`
 - Artifact name: **Widget-Lab-development-APK**
 - File inside its ZIP: **app-debug.apk**
 - The upload step provides the exact artifact download-page URL in the run summary. Its artifact ID does not exist before a successful upload, so an exact URL cannot be supplied in advance.
@@ -68,7 +68,7 @@ Artifact location after an actual run:
 Terminal download, once the run/artifact exists:
 
 ```sh
-gh run download RUN_ID --repo OWNER/REPO --name Widget-Lab-development-APK --dir widgetlab-apk
+gh run download RUN_ID --repo okthisisitright/the-lab --name Widget-Lab-development-APK --dir widgetlab-apk
 ```
 
 The locally signed APK and a newly generated CI development key may differ. If Android refuses to update an existing Widget Lab installation because of its signature, uninstall the old installation before installing the new one (this removes its local settings), or configure a stable private signing key for later updates.
@@ -80,9 +80,9 @@ With a connected private repository and working GitHub authorization, the alread
 ```sh
 gh release create widget-lab-0.1.0-test \
   /workspace/shared/downloads/WidgetLab-0.1.0-small.apk \
-  --repo OWNER/REPO \
+  --repo okthisisitright/the-lab \
   --title 'Widget Lab 0.1.0 device test' \
   --notes 'Existing optimized APK, development-signed. No new application build.'
 ```
 
-Then use the repository’s **Releases → Widget Lab 0.1.0 device test → Assets → WidgetLab-0.1.0-small.apk** from a signed-in phone browser. This downloads an APK directly, without the Codex viewer or an artifact ZIP. This command has **not** been executed in this session because a target repository with write access is not yet available. No APK was sent to an unrelated public file host.
+Then use the repository’s **Releases → Widget Lab 0.1.0 device test → Assets → WidgetLab-0.1.0-small.apk** from a signed-in phone browser. This downloads an APK directly, without the Codex viewer or an artifact ZIP. This command has **not** been executed in this session until the source is pushed and the release asset upload is verified. No APK was sent to an unrelated public file host.
