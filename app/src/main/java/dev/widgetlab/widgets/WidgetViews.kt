@@ -61,14 +61,14 @@ object WidgetViews {
                     views.setViewVisibility(slots[i],View.VISIBLE)
                     views.setViewPadding(slots[i],px(b.x),px(b.y),px(w-b.x-b.w),px(h-b.y-b.h))
                     views.removeAllViews(slots[i])
-                    val childId=context.resources.getIdentifier("tick_${t.face}_${t.weight}","layout",context.packageName)
-                    val child=RemoteViews(context.packageName,childId.takeIf{it!=0} ?: R.layout.tick_sans_500)
+                    val alignment=t.alignment.takeIf{it in listOf("start","center","end")} ?: "start"
+                    val childId=context.resources.getIdentifier("tick_${t.face}_${t.weight}_$alignment","layout",context.packageName)
+                    val child=RemoteViews(context.packageName,childId.takeIf{it!=0} ?: R.layout.tick_sans_500_start)
                     child.setString(R.id.clock_text,"setTimeZone",t.zone)
                     child.setCharSequence(R.id.clock_text,"setFormat12Hour",t.format);child.setCharSequence(R.id.clock_text,"setFormat24Hour",t.format)
                     val sample=if(t.role in listOf("time","second","minutes"))if(t.format.contains(':'))"23:58" else "88" else data.now.atZone(java.time.ZoneId.of(t.zone)).format(java.time.format.DateTimeFormatter.ofPattern(t.format))
                     val size=ClockDesign.fittedSize(context,t,sample)
                     child.setTextViewTextSize(R.id.clock_text,TypedValue.COMPLEX_UNIT_DIP,size)
-                    child.setInt(R.id.clock_text,"setGravity",Gravity.CENTER_VERTICAL or when(t.alignment){"center"->Gravity.CENTER_HORIZONTAL;"end"->Gravity.END;else->Gravity.START})
                     child.setTextColor(R.id.clock_text,if(cfg.accentText&&t.role in listOf("time","second","minutes","day"))accentTextColor(cfg) else if(t.role=="minutes"&&cfg.kind==WidgetKind.BRUTAL_CLOCK)Color.parseColor(cfg.accent) else if(t.role=="date")muted else ink)
                     child.setOnClickPendingIntent(R.id.clock_text,configure)
                     views.addView(slots[i],child)
@@ -82,10 +82,14 @@ object WidgetViews {
                 val supported=data.mediaAccess&&when(action){"previous"->data.media.previous;"next"->data.media.next;else->data.media.toggle}
                 val intent=Intent(context,WidgetActionReceiver::class.java).setAction("dev.widgetlab.MEDIA").setData(Uri.parse("widgetlab://media/$id/$action")).putExtra("widgetId",id).putExtra("control",action)
                 views.setOnClickPendingIntent(view,if(supported)PendingIntent.getBroadcast(context,id*10+view,intent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) else configure)
-                views.setInt(view,"setColorFilter",if(supported)if(cfg.kind==WidgetKind.ARTWORK)Color.WHITE else ink else muted)
+                val color=if(supported)if(cfg.kind==WidgetKind.ARTWORK)Color.WHITE else ink else muted
+                val resource=when(action){"previous"->R.drawable.control_previous;"next"->R.drawable.control_next;else->if(data.media.playing)R.drawable.control_pause else R.drawable.control_play}
+                val icon=context.getDrawable(resource)!!.mutate().apply{setTint(color);setBounds(0,0,64,64)}
+                val bitmap=android.graphics.Bitmap.createBitmap(64,64,android.graphics.Bitmap.Config.ARGB_8888)
+                icon.draw(android.graphics.Canvas(bitmap))
+                views.setImageViewBitmap(view,bitmap)
                 views.setContentDescription(view,if(supported)when(action){"previous"->"Previous track";"next"->"Next track";else->if(data.media.playing)"Pause" else "Play"} else "$action unavailable. Open settings")
             }
-            views.setImageViewResource(R.id.toggle,if(data.media.playing)R.drawable.control_pause else R.drawable.control_play)
         }
         if(cfg.kind.hasApps&&cfg.apps.isNotEmpty()){
             val plan=shortcutPlan(cfg,w,h);val b=plan.bounds
@@ -99,8 +103,10 @@ object WidgetViews {
                     val index=rowIndex*plan.columns+column
                     val cell=RemoteViews(context.packageName,R.layout.shortcut_cell)
                     val selected=cfg.apps.getOrNull(index)
-                    val intent=selected?.let{LaunchApps.intent(context,it)}
-                    val pending=intent?.let{PendingIntent.getActivity(context,id*100+index,it,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)} ?: configure
+                    val launch=Intent(context,dev.widgetlab.ui.ShortcutLaunchActivity::class.java)
+                        .setData(Uri.parse("widgetlab://launch/$id/$index"))
+                        .putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID,id).putExtra("index",index)
+                    val pending=if(selected!=null)PendingIntent.getActivity(context,id*100+index,launch,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) else configure
                     cell.setOnClickPendingIntent(R.id.shortcut_click,pending)
                     cell.setContentDescription(R.id.shortcut_click,selected?.let{LaunchApps.label(context,it)} ?: "Choose application")
                     row.addView(R.id.shortcut_row,cell)

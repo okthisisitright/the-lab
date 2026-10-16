@@ -16,6 +16,7 @@
         <activity android:name=".ui.WidgetConfigureActivity" android:exported="true" android:excludeFromRecents="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/></intent-filter>
         </activity>
+        <activity android:name=".ui.ShortcutLaunchActivity" android:exported="false" android:theme="@android:style/Theme.NoDisplay" android:noHistory="true" android:excludeFromRecents="true" />
         <service android:name=".media.MediaListener" android:label="Widget Lab media access" android:exported="true" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
         </service>

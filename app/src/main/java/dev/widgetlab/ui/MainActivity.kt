@@ -16,6 +16,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -34,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -67,7 +69,7 @@ open class MainActivity: ComponentActivity() {
     open val configuring=false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),navigationBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         if(configuring) setResult(Activity.RESULT_CANCELED)
         val id=if(configuring) intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,-1) else -1
         val kind=if(id!=-1) ProviderCatalog.kind(this,id) else null
@@ -226,7 +228,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     val bitmap by produceState<Bitmap?>(null,config.json(),data,shape){if(live!=null)value=withContext(Dispatchers.Default){WidgetRenderer(context).render(PreviewSamples.config(config),PreviewSamples.data(context,config,live),630,(630/ratio).toInt())}}
     val transparent=config.surface in listOf("transparent","outline","semi","tint","glass")
     Column(modifier){
-        Box(Modifier.fillMaxWidth().aspectRatio(ratio).background(if(transparent)when(wallpaper){1->Color(0xFFD4CDBE);2->Color(0xFF493C35);else->Color(0xFF34454A)} else Color.Transparent)){
+        Box(Modifier.fillMaxWidth().aspectRatio(ratio).clipToBounds().background(if(transparent)when(wallpaper){1->Color(0xFFD4CDBE);2->Color(0xFF493C35);else->Color(0xFF34454A)} else Color.Transparent)){
             if(transparent)Canvas(Modifier.fillMaxSize()){
                 val stroke=Color.White.copy(alpha=.045f)
                 for(i in 0..12)drawLine(stroke,androidx.compose.ui.geometry.Offset(size.width*.17f+i*size.width*.09f,-10f),androidx.compose.ui.geometry.Offset(i*size.width*.09f,size.height+10f),size.width*.035f)
@@ -247,7 +249,12 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Eyebrow("YOUR HOMESCREEN, COMPOSED.");Text("$installed IN PLACE ↗",color=Lime,fontFamily=Mono,fontSize=9.sp,modifier=Modifier.clickable(onClick=onInstalled))}
                 Spacer(Modifier.height(24.dp))
                 Row(verticalAlignment=Alignment.Bottom){
-                    BoxWithConstraints(Modifier.weight(1f)){val headingSize=(maxWidth.value/4.0f).toInt().coerceIn(35,65);Heading("THE\nCOLLECTION",headingSize)}
+                    BoxWithConstraints(Modifier.weight(1f)){
+                        val context=LocalContext.current
+                        val widthPerSp=remember{android.graphics.Paint().apply{typeface=LabType.face(context,"condensed",650);textSize=100f}.measureText("COLLECTION")/100f}
+                        val headingSize=(maxWidth.value/widthPerSp*.94f).toInt().coerceAtMost(67)
+                        Heading("THE\nCOLLECTION",headingSize)
+                    }
                     Text("50",Modifier.padding(start=6.dp),fontFamily=Serif,fontSize=70.sp,color=Lime,textAlign=androidx.compose.ui.text.style.TextAlign.End)
                 }
                 Spacer(Modifier.height(16.dp));Text("Time. Sound. Speed. Your point of view.",fontFamily=Serif,fontSize=19.sp,color=Soft)

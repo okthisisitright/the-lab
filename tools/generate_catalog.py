@@ -76,10 +76,14 @@ for mode,color in [('light','#F5F4EE'),('dark','#181B1C')]:
 for name,path in {'play':'M8,5 L19,12 L8,19 Z','pause':'M7,5 L10,5 L10,19 L7,19 Z M14,5 L17,5 L17,19 L14,19 Z','next':'M5,5 L15,12 L5,19 Z M17,5 L19,5 L19,19 L17,19 Z','previous':'M19,5 L9,12 L19,19 Z M5,5 L7,5 L7,19 L5,19 Z'}.items():
     (app/f'res/drawable/control_{name}.xml').write_text(f'<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24"><path android:fillColor="#FFFFFF" android:pathData="{path}" /></vector>')
 print('Generated',len(items),'providers and native clock layouts')
+for old in (app/'res/layout').glob('tick_*.xml'):
+    old.unlink()
 for face in ['sans','condensed','serif','technical','mono','dots']:
     font='inter' if face=='sans' else face
     for weight in [200,400,450,500,650,700,850]:
-        (app/f'res/layout/tick_{face}_{weight}.xml').write_text(f'<TextClock xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/clock_text" android:layout_width="match_parent" android:layout_height="match_parent" android:includeFontPadding="false" android:gravity="start|center_vertical" android:fontFamily="@font/{font}" android:textFontWeight="{weight}" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />')
+        for alignment in ['start','center','end']:
+            gravity='center_horizontal' if alignment=='center' else alignment
+            (app/f'res/layout/tick_{face}_{weight}_{alignment}.xml').write_text(f'<TextClock xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/clock_text" android:layout_width="match_parent" android:layout_height="match_parent" android:includeFontPadding="false" android:gravity="{gravity}|center_vertical" android:fontFamily="@font/{font}" android:textFontWeight="{weight}" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />')
 lines=['# The 50 objects / Edition II','', 'Every row corresponds to a registered Android AppWidgetProvider. Launcher cell sizes vary; resize ranges below describe the intended supported grid. Compact layouts retain only information that fits.','', '| # | Design | Supported grid | Function | Customization |','|---|---|---|---|---|']
 for index,(key,title,col,size,height,desc) in enumerate(items,1):
     options=['theme / typography'] if col!='PHOTO' else ['photo selection','focal alignment']
