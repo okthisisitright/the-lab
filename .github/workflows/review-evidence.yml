@@ -5,6 +5,10 @@ on:
       run_id:
         description: Android 15 device-check run ID from this repository
         required: true
+      artifact_name:
+        description: Artifact containing device evidence
+        default: Android-15-device-test-results
+        required: true
 permissions:
   contents: write
   actions: read
@@ -17,9 +21,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           RUN_ID: ${{ inputs.run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name }}
         run: |
           [[ "$RUN_ID" =~ ^[0-9]+$ ]]
-          gh run download "$RUN_ID" --name Android-15-device-test-results --dir evidence
+          gh run download "$RUN_ID" --name "$ARTIFACT_NAME" --dir evidence
           find evidence -name '*.png' -exec cp '{}' . \;
           zip -qr Studio-evidence.zip evidence
           if ! gh release view widget-lab-0.2.0-qa >/dev/null 2>&1; then
