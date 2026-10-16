@@ -32,11 +32,13 @@ jobs:
           [[ "$RELEASE_TAG" =~ ^widget-lab-[a-zA-Z0-9.-]+$ ]]
           gh run download "$RUN_ID" --name "$ARTIFACT_NAME" --dir evidence
           find evidence -name '*.png' -exec cp '{}' . \;
-          zip -qr Studio-evidence.zip evidence
+          archive=Studio-evidence.zip
+          if [[ "$ARTIFACT_NAME" == Installed-release-results ]]; then archive=Installed-APK-evidence.zip; fi
+          zip -qr "$archive" evidence
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" --title 'Widget Lab — Android verification evidence' --notes 'Automated emulator screenshots and test reports. Development verification; no APK in this release. Physical Vivo acceptance remains separate.' --prerelease
           fi
-          gh release upload "$RELEASE_TAG" Studio-evidence.zip --clobber
+          gh release upload "$RELEASE_TAG" "$archive" --clobber
           for image in ./*.png; do
             if [[ -f "$image" ]]; then gh release upload "$RELEASE_TAG" "$image" --clobber; fi
           done
