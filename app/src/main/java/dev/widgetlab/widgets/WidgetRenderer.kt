@@ -462,7 +462,7 @@ class WidgetRenderer(private val context:Context) {
                 WidgetKind.CINEMATIC->{if(h>=90){line(pad,13f,w-pad,13f);label("THE PRESENT",pad,h-8,max=inner)}}
                 WidgetKind.BRUTAL_CLOCK->{val split=ClockDesign.plan(cfg,w,h).getOrNull(1)?.bounds?.y ?: h*.5f;rect(0f,split,w,2f,accent);label("H",w-pad-9,pad+8,max=10f);label("M",w-pad-9,split+8,max=10f)}
                 WidgetKind.ANALOG->{circle(w/2,h/2,5f,accent)}
-                WidgetKind.SPLIT->{if(cfg.showDate&&h>=82&&w/h>1.2f)line(w*.62f,pad,w*.62f,h-pad) else if(cfg.showDate&&h>=82)line(pad,h*.54f,w-pad,h*.54f)}
+                WidgetKind.SPLIT->{if(cfg.showDate&&h>=96&&w/h>1.2f)line(w*.62f,pad,w*.62f,h-pad) else if(cfg.showDate&&h>=96)line(pad,h*.54f,w-pad,h*.54f)}
                 WidgetKind.DUAL->{line(w*.5f,pad,w*.5f,h-pad);label(zoneLabel(cfg.timezone),pad,h*.23f,max=w*.44f-pad);label(zoneLabel(cfg.secondaryZone),w*.54f,h*.23f,max=w*.46f-pad)}
                 WidgetKind.TERMINAL->{if(h>=90){label("> TIME / ${zoneLabel(cfg.timezone)}",color=accent);line(pad,33f,w-pad,33f);rect(w-pad-6,h-pad-6,6f,6f,accent)}}
                 WidgetKind.SERIF->{if(h>=90)line(w*.4f,16f,w*.6f,16f,accent)}
@@ -482,12 +482,21 @@ class WidgetRenderer(private val context:Context) {
         }
         fun zoneLabel(zone:String)=if(zone=="device")"LOCAL" else zone.substringAfterLast('/').replace('_',' ')
         fun analog(){
-            val r=min(w,h)*.43f;val cx=w/2;val cy=h/2
-            circle(cx,cy,r,ink,1f)
-            for(i in 0..59){val a=i*PI/30-PI/2;val outer=r*.94f;val inner=r*if(i%5==0).86f else .91f;line(cx+cos(a).toFloat()*inner,cy+sin(a).toFloat()*inner,cx+cos(a).toFloat()*outer,cy+sin(a).toFloat()*outer,ink,if(i%5==0)2f else .6f)}
-            val now=d.now.atZone(cfg.zone());val hour=(now.hour%12+now.minute/60f)*PI/6-PI/2;val minute=now.minute*PI/30-PI/2
-            line(cx,cy,cx+cos(hour).toFloat()*r*.5f,cy+sin(hour).toFloat()*r*.5f,ink,4f)
-            line(cx,cy,cx+cos(minute).toFloat()*r*.75f,cy+sin(minute).toFloat()*r*.75f,ink,2f);circle(cx,cy,4f,accent)
+            val scale=(min(w,h)-16f).coerceAtLeast(1f)/200f
+            val cx=w/2;val cy=h/2
+            for(i in 0..59){
+                val a=i*PI/30-PI/2
+                val outer=94f*scale;val inner=(if(i%5==0)85f else 90f)*scale
+                line(cx+cos(a).toFloat()*inner,cy+sin(a).toFloat()*inner,cx+cos(a).toFloat()*outer,cy+sin(a).toFloat()*outer,ink,1.3f*scale)
+            }
+            val now=d.now.atZone(cfg.zone())
+            val hour=(now.hour%12+now.minute/60f)*PI/6-PI/2
+            val minute=now.minute*PI/30-PI/2
+            p.strokeCap=Paint.Cap.ROUND
+            line(cx-cos(hour).toFloat()*8*scale,cy-sin(hour).toFloat()*8*scale,cx+cos(hour).toFloat()*49*scale,cy+sin(hour).toFloat()*49*scale,ink,3*scale)
+            line(cx-cos(minute).toFloat()*8*scale,cy-sin(minute).toFloat()*8*scale,cx+cos(minute).toFloat()*75*scale,cy+sin(minute).toFloat()*75*scale,ink,1.7f*scale)
+            p.strokeCap=Paint.Cap.BUTT
+            circle(cx,cy,6f,accent)
         }
         fun photos(){
             val files=cfg.photos;val images=files.map{ArtCache.get(context,it)}

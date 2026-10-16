@@ -52,10 +52,11 @@ for face in ['sans','thin','bold','condensed','serif','technical','mono','dots']
         <TextClock android:id="@+id/{id}" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical|start" android:includeFontPadding="false" android:fontFamily="@font/{ff}" android:textFontWeight="{weight if i<2 else '400'}" android:textStyle="{style if i<2 else 'normal'}" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />
     </FrameLayout>\n'''
         base+=f'''    <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:visibility="gone" android:dial="@drawable/dial_{'dark' if light else 'light'}" android:hand_hour="@drawable/hand_hour_{'dark' if light else 'light'}" android:hand_minute="@drawable/hand_minute_{'dark' if light else 'light'}" />
+    <ImageView android:id="@+id/analog_cap" android:layout_width="12dp" android:layout_height="12dp" android:layout_gravity="center" android:importantForAccessibility="no" android:visibility="gone" />
     <LinearLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="48dp" android:layout_gravity="bottom" android:gravity="end|center_vertical" android:paddingEnd="12dp" android:orientation="horizontal" android:visibility="gone">
 '''
         for id in ['previous','toggle','next']:
-            base+=f'        <ImageView android:id="@+id/{id}" android:layout_width="44dp" android:layout_height="44dp" android:padding="13dp" android:src="@drawable/control_{"play" if id=="toggle" else id}" android:contentDescription="{id}" />\n'
+            base+=f'        <ImageView android:id="@+id/{id}" android:layout_width="44dp" android:layout_height="44dp" android:padding="10dp" android:src="@drawable/control_{"play" if id=="toggle" else id}" android:contentDescription="{id}" />\n'
         base+='''    </LinearLayout>
     <LinearLayout android:id="@+id/shortcut_host" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone" />
 </FrameLayout>\n'''

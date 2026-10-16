@@ -50,6 +50,10 @@ object WidgetViews {
         if(cfg.kind.isClock||cfg.kind.hasAgenda){
             if(cfg.kind==WidgetKind.ANALOG){
                 views.setViewVisibility(R.id.analog,View.VISIBLE)
+                val cap=android.graphics.Bitmap.createBitmap(64,64,android.graphics.Bitmap.Config.ARGB_8888)
+                android.graphics.Canvas(cap).drawCircle(32f,32f,32f,android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply{color=Color.parseColor(cfg.accent)})
+                views.setViewVisibility(R.id.analog_cap,View.VISIBLE)
+                views.setImageViewBitmap(R.id.analog_cap,cap)
                 if(Build.VERSION.SDK_INT>=31)views.setString(R.id.analog,"setTimeZone",if(cfg.timezone=="device")null else cfg.zone().id)
                 views.setOnClickPendingIntent(R.id.analog,configure)
                 views.setContentDescription(R.id.analog,"Analog clock, ${if(Build.VERSION.SDK_INT>=31)cfg.zone().id else "device timezone"}")
