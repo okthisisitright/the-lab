@@ -26,9 +26,13 @@ The smaller file and shared-downloads path may avoid the large-file timeout, but
 
 ## GitHub status
 
-Target repository: https://github.com/okthisisitright/the-lab . GitHub authentication is working and repository write access is available. The repository is currently public; the owner explicitly instructed proceeding with upload and will change its visibility later. Repository creation and visibility changes are not allowed by this connection, but those are no longer prerequisites for delivery.
+Target repository: https://github.com/okthisisitright/the-lab . The owner explicitly instructed proceeding with its current public visibility and will change that later. Visibility is therefore not a blocker.
 
-The workflow is committed and validated with actionlint. Exact release and Actions URLs must be confirmed after their respective uploads complete; creating a local APK or committing a workflow does not itself publish an artifact.
+Publishing was attempted after that instruction. Both standard Git push (including the GitHub CLI credential helper) and the GitHub connector contents API refused writes with **HTTP 403: Resource not accessible by integration**. No initial project file was created remotely. The connector reports no available GitHub App installations, and the latest CLI authentication check returns HTTP 401. The repository metadata's user-role `push: true` does not establish that the integration token can write.
+
+Complete GitHub app setup through ChatGPT Settings → Apps → GitHub → Configure/Manage and include **the-lab** in its repository access. This is an external authorization/setup requirement; repeating a build cannot fix it. No push, workflow dispatch, release asset upload or Actions artifact upload has succeeded. Exact run/artifact links do not yet exist.
+
+The workflow is committed and validated with actionlint. An unsupported job-level runner-context expression was fixed before publication. The APK remains unchanged and ready to upload.
 
 ## Build and download through Actions
 
