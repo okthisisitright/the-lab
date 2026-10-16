@@ -207,8 +207,8 @@ class WidgetRenderer(private val context:Context) {
                     val y=top+i*step
                     text("0${i+1}",pad,y+16,14f,muted,"mono",max=25f)
                     text(e.first,pad+34,y+16,min(22f,step*.60f),ink,"condensed",600,inner*.56f)
-                    fit(e.second,w-83,y+16,22f,62f,ink,"technical")
-                    rect(pad+34,y+step-4,(inner-34)*fraction,2f,Color.parseColor(teamColor(e.third)))
+                    fit(e.second,w-83,y+16,min(22f,step*.70f),62f,ink,"technical")
+                    rect(pad+34,y+step-2,(inner-34)*fraction,2f,Color.parseColor(teamColor(e.third)))
                 }
             }else{
                 val col=inner/3; val baseline=h-38f

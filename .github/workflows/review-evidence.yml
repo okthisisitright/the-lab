@@ -25,4 +25,7 @@ jobs:
           if ! gh release view widget-lab-0.2.0-qa >/dev/null 2>&1; then
             gh release create widget-lab-0.2.0-qa --title 'Edition II — Android emulator evidence' --notes 'Automated emulator screenshots and test reports. Development verification; no APK in this release. Physical Vivo acceptance remains separate.' --prerelease
           fi
-          gh release upload widget-lab-0.2.0-qa Studio-evidence.zip ./*.png --clobber
+          gh release upload widget-lab-0.2.0-qa Studio-evidence.zip --clobber
+          for image in ./*.png; do
+            if [[ -f "$image" ]]; then gh release upload widget-lab-0.2.0-qa "$image" --clobber; fi
+          done

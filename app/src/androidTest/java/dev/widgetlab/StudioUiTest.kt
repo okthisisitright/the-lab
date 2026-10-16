@@ -14,7 +14,13 @@ class StudioUiTest {
         compose.waitForIdle()
         val instrumentation=InstrumentationRegistry.getInstrumentation()
         val dir=File(instrumentation.targetContext.filesDir,"visuals").apply{mkdirs()}
-        instrumentation.uiAutomation.takeScreenshot()?.let{bitmap->File(dir,"$name.png").outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}}
+        instrumentation.uiAutomation.takeScreenshot()?.let{bitmap->
+            File(dir,"$name.png").outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+            // Shell-owned evidence survives the Android test runner's app cleanup.
+            val pipes=instrumentation.uiAutomation.executeShellCommandRw("mkdir -p /data/local/tmp/widgetlab-visuals && cat > /data/local/tmp/widgetlab-visuals/$name.png")
+            android.os.ParcelFileDescriptor.AutoCloseOutputStream(pipes[1]).use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(pipes[0]).use{it.readBytes()}
+        }
     }
     @Test fun galleryOpensActualClockConfigurationAndChangesTransparency(){
         compose.onNodeWithText("THE\nCOLLECTION").assertIsDisplayed()

@@ -1,4 +1,6 @@
-# Verification record
+Current rebuild verification: [Edition II / 0.2.0](EDITION-II-VERIFICATION.md).
+
+# Historical verification record / 0.1.0
 
 Development date: 15 October 2026. This record separates implementation checks from physical-device acceptance.
 
