@@ -53,4 +53,10 @@ The first resize assertion read an already queued old-sized frame; the host chec
 
 The strengthened [installed-APK run 38924319686](https://github.com/okthisisitright/the-lab/actions/runs/38924319686) also passed both tests, including native painted-pixel checks and waiting for rendered frames before screenshots. This tests the existing signed APK from a separate application; no app internals are linked into the host. The same APK hash was used throughout these host-test corrections.
 
-Final release links are recorded after the upload is verified. Physical Vivo installation/placement acceptance remains pending. Do not uninstall the previous app before trying the signed update: preserving the installation keeps private photos and profiles.
+[Publish run 38925000635](https://github.com/okthisisitright/the-lab/actions/runs/38925000635) succeeded. GitHub's asset size/digest match the package above; a fresh download was compared byte-for-byte with the signed local file.
+
+- [Direct APK](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.3.0-test/WidgetLab-0.3.0.apk)
+- [Release notes and checksum](https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.3.0-test)
+- [Actions artifact ID 12055943506](https://github.com/okthisisitright/the-lab/actions/runs/38925000635/artifacts/12055943506), `Widget-Lab-APK`, 30-day retention.
+- [Installed-APK evidence ZIP](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.3.0-qa/Installed-APK-evidence.zip), mirrored by run 38925006745.
+- [Visible native clock screenshot](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.3.0-qa/widgetlab-release-clock.png), inspected after waiting for rendered frames. The earlier blank capture occurred before a completed frame; the updated capture shows actual native time/date. Physical Vivo installation/placement acceptance remains pending. Do not uninstall the previous app before trying the signed update: preserving the installation keeps private photos and profiles.

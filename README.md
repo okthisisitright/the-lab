@@ -1,8 +1,8 @@
-# Widget Lab / Edition II
+# Widget Lab
 
 A native Android studio for a personal collection of **50 real home-screen widgets**. Kotlin, Compose, AppWidgetProvider and RemoteViews. Android 10+; Android 15 is the primary integration-test target. No development server, accounts, ads or analytics.
 
-The rebuilt app has a searchable collection browser, artwork-backed design studies, live-rendered previews, proportion/wallpaper inspection, per-instance customization, pinning, installed-widget management and local permission diagnostics.
+The app has a searchable collection browser, artwork-backed design studies, live-rendered previews, proportion/wallpaper inspection, per-instance customization, pinning, installed-widget management and local permission diagnostics.
 
 | Collection | Designs |
 |---|---:|
@@ -15,9 +15,9 @@ The rebuilt app has a searchable collection browser, artwork-backed design studi
 
 See [all 50 designs, dimensions and controls](docs/CATALOG.md), [Edition II architecture and behavior](docs/EDITION-II.md), [verification](docs/EDITION-II-VERIFICATION.md) and [physical-device acceptance](docs/DEVICE-TESTING.md).
 
-## What changed
+## Widget behavior
 
-The old fixed-canvas stretching implementation is replaced by layouts calculated for actual widget dimensions. Compact layouts simplify information; portrait layouts move images; tables limit visible rows; launcher grids reveal as many targets as fit. Android 12+ uses responsive size maps; Android 10–11 uses independent portrait/landscape views. Raster scaling is uniform, and bitmap allocations are bounded across size variants.
+Layouts are calculated for actual widget dimensions. Compact layouts simplify information; portrait layouts move images; tables limit visible rows; launcher grids reveal as many targets as fit. All supported Android versions use independent portrait/landscape RemoteViews for launcher compatibility. Resize broadcasts generate fresh layouts. Raster scaling is uniform, and bitmap allocations are bounded across size variants.
 
 Most clocks default to a fully transparent background. Six surface treatments and six licensed typographic languages support different home-screen compositions. Native TextClock/AnalogClock views keep time without background bitmap polling. Previews share the actual geometry and renderer. Wallpaper backdrops and clearly labeled NASA art studies are preview content, not fake live data.
 
@@ -25,13 +25,17 @@ Music widgets use real active sessions, published metadata, album artwork, capab
 
 Racing uses independent cached Jolpica feeds, source timestamps, IANA timezone conversion and explicit historical-sample labels. Season-specific relationships are preserved. Personal driver/car imagery is supported; a bundled Hamilton photo is credited as a 2021 archive. No unrelated Racecraft app is included.
 
-## Install Edition II
+## Install 0.3.0
 
-[**Download WidgetLab-0.2.0.apk (8.65 MB)**](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.2.0-test/WidgetLab-0.2.0.apk) · [Release notes and checksum](https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.2.0-test)
+[**Download WidgetLab-0.3.0.apk (9.32 MB)**](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.3.0-test/WidgetLab-0.3.0.apk) · [Release notes and checksum](https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.3.0-test)
 
-Open the APK on your Android phone, allow installation from your browser/file manager when prompted, and install. This optimized development-signed package matches the earlier optimized 0.1.0 certificate and can update it while keeping settings. CI debug APKs may use a different key. Read the [verification record](docs/EDITION-II-VERIFICATION.md) for automated results and remaining physical-device checks.
+Install over the previous optimized release. Open Widget Lab once, then **Settings → Refresh installed widgets**. Existing profiles and private photos are preserved by the matching signing certificate. If one old instance stays blank, remove and re-add that widget. Do not uninstall the whole app to troubleshoot.
 
-The exact [Actions artifact ZIP](https://github.com/okthisisitright/the-lab/actions/runs/38860986027/artifacts/12028814522) contains the same APK and its checksum; it expires after 30 days. The release asset is the simpler phone download and does not require extracting a ZIP.
+This update adds a spacious Google Sans interface, plain widget names, eight replacement music designs, configuration completion ordering and launcher compatibility fixes. Non-clock designs no longer inflate hidden clocks. See [0.3.0 changes and verification](docs/REVISION-0.3.0.md), the [new app UI](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.3.0-qa/widgetlab-01-studio-home.png) and a [real transparent clock in the external host](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.3.0-qa/widgetlab-release-clock.png).
+
+The published APK was downloaded and compared byte-for-byte with the verified signed file. [Exact Actions artifact ZIP](https://github.com/okthisisitright/the-lab/actions/runs/38925000635/artifacts/12055943506), retained for 30 days, contains the same APK/checksum. The release asset is the simpler phone download.
+
+20 local tests, three Android 15 integration tests and two installed-APK tests pass. The latter host all 50 providers across processes, check native clock pixels, requested resize geometry and framework updates after process death. Physical Vivo placement acceptance and real third-party music-app compatibility still require phone testing.
 
 ## Build and install
 

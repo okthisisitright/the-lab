@@ -1,3 +1,15 @@
+# Current delivery — 0.3.0
+
+[Download WidgetLab-0.3.0.apk](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.3.0-test/WidgetLab-0.3.0.apk), 9,322,660 bytes. Install over the existing optimized app, open Widget Lab once, then Settings → Refresh installed widgets. The signature matches earlier optimized releases. [Verification and changes](REVISION-0.3.0.md).
+
+[Release notes/checksum](https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.3.0-test) · [Exact Actions artifact](https://github.com/okthisisitright/the-lab/actions/runs/38925000635/artifacts/12055943506)
+
+Published through `publish-apk.yml` using actions/upload-artifact and GitHub Releases. The release download was verified byte-for-byte. The regular `android.yml` workflow still builds and uploads a debug APK. Prefer the signed release asset for preserving the existing installation.
+
+The following sections are historical delivery records.
+
+---
+
 # Current delivery — Edition II / 0.2.0
 
 The current verified download is [WidgetLab-0.2.0.apk](https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.2.0-test/WidgetLab-0.2.0.apk), 8,650,612 bytes. Open it on the phone and allow installation from the browser/file manager when prompted. No Codex file viewer or development server is required.
