@@ -49,3 +49,15 @@ Use two installed applications that expose Android media sessions (for example S
 7. Use Android network diagnostics if desired: only public racing API requests should leave the app; no artwork, notification bodies or calendar data should be transmitted.
 
 Record device model, launcher version, Funtouch OS build, app version, signing identity and results in VERIFICATION.md before calling a release device-accepted.
+
+
+## Edition II / 50-design acceptance
+
+- Confirm all 50 designs appear in the picker, in the requested 12/8/15/5/5/5 distribution.
+- Place transparent Air, Maison, Pixels and Vertical clocks over actual wallpapers. Resize to their smallest supported size and then expand. Check native minute rollover, date visibility, type/accent/alignment settings and two independent zones. Change the device timezone with Widget Lab closed.
+- Import both a JPEG and a transparent PNG driver portrait. Verify that cropping and transparency survive closing the app and restarting the phone. Select 3 collage photos and up to 4 filmstrip photos.
+- Select apps in Strip, Editorial and Index launchers. Test each real launch target, icon style and label visibility. Uninstall a selected test app; tapping its old target should immediately open configuration, where the unavailable selection can be removed.
+- Play music in the actual players you use. Test all supported controls and missing/disconnected/revoked-access states. Confirm the widget artwork follows the active session. Do not infer third-party compatibility from controlled Android session tests.
+- Check actual charging state, Android DND filter and optional local calendar events. Confirm no calendar permission is requested until you choose to enable it.
+- Verify 4×2 and taller racing layouts on the Vivo grid, both classic and sprint weekends, offline freshness labels and the 2021 archival portrait marker.
+- Test large system fonts and Vivo battery/autostart policy. Record the physical launcher/device version separately from emulator results.
