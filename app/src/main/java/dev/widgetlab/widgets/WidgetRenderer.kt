@@ -247,6 +247,7 @@ class WidgetRenderer(private val context:Context) {
             val titleH=if(compact)0f else 37f
             if(!compact)text(if(drivers)"DRIVERS" else "CONSTRUCTORS",pad,61f,30f,ink,"condensed",700)
             val top=pad+24+titleH
+            if(list.isEmpty()){text("Standings not published",pad,h*.55f,20f,muted,max=inner)}
             val rows=min(cfg.rows,((h-top-26)/26f).toInt().coerceAtLeast(1)).coerceAtMost(list.size)
             val step=min(42f,(h-top-25)/rows.coerceAtLeast(1))
             list.take(rows).forEachIndexed{i,e->val y=top+i*step
@@ -275,7 +276,7 @@ class WidgetRenderer(private val context:Context) {
         }
         fun weekend(){
             val race=next();val s=d.racing.schedule
-            if(race==null){label("RACE CALENDAR");text("Calendar complete",pad,h*.5f,25f);footer(s);return}
+            if(race==null){label("RACE CALENDAR");text(if(s.value.isEmpty())"Awaiting calendar" else "Calendar complete",pad,h*.5f,25f);footer(s);return}
             val editorial=cfg.kind==WidgetKind.WEEKEND_EDITORIAL
             if(compact){
                 label("R${race.round} / ${race.season}",pad,18f,color=if(editorial)accent else muted)
@@ -309,7 +310,7 @@ class WidgetRenderer(private val context:Context) {
         fun countdown(){
             val race=next();val s=d.racing.schedule
             if(h>=100)label("NEXT / LIGHTS OUT",color=accent)
-            if(race==null){text("Season complete",pad,h*.5f,24f);footer(s);return}
+            if(race==null){text(if(s.value.isEmpty())"Awaiting calendar" else "Season complete",pad,h*.5f,24f);footer(s);return}
             val duration=race.start?.let{Duration.between(d.now,it)}
             val future=duration!=null&&!duration.isNegative
             if(h<180){
