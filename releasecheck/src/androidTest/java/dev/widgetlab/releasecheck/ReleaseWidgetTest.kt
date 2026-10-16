@@ -12,6 +12,8 @@ import android.widget.ImageView
 import android.widget.FrameLayout
 import android.widget.TextClock
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.view.Gravity
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -82,9 +84,24 @@ class ReleaseWidgetTest {
                         if(!visible)Thread.sleep(100)
                     }
                     assertTrue("Visible native clock text, not just a transparent bitmap: $name",visible)
+                    // Assert actual native drawing too; nonempty TextClock.text alone cannot
+                    // distinguish wallpaper-colored/blank output from a readable clock.
+                    instrumentation.runOnMainSync {
+                        val pixels=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
+                        view.draw(Canvas(pixels))
+                        val buffer=IntArray(pixels.width*pixels.height)
+                        pixels.getPixels(buffer,0,pixels.width,0,0,pixels.width,pixels.height)
+                        assertTrue("Native clock paints varied pixels: $name",buffer.toSet().size>=8)
+                        pixels.recycle()
+                    }
                 }
                 val capture=when(name){"ClockWidget"->"clock";"CompactWidget"->"player";"WeekendWidget"->"race";else->null}
-                if(capture!=null)shell("screencap -p /data/local/tmp/widgetlab-release-$capture.png")
+                if(capture!=null){
+                    val drawn=java.util.concurrent.CountDownLatch(1)
+                    instrumentation.runOnMainSync{view.postOnAnimation{view.postOnAnimation{drawn.countDown()}};view.invalidate()}
+                    assertTrue("Two committed frames before screenshot",drawn.await(3,java.util.concurrent.TimeUnit.SECONDS))
+                    shell("screencap -p /data/local/tmp/widgetlab-release-$capture.png")
+                }
                 if(info.provider.className.endsWith("ClockWidget")||info.provider.className.endsWith("CompactWidget")||info.provider.className.endsWith("WeekendWidget")){
                     // A genuine options broadcast, with no direct calls into Widget Lab.
                     val initial=context.packageManager.getResourcesForApplication("dev.widgetlab").getIdentifier("widget_surface","layout","dev.widgetlab")
