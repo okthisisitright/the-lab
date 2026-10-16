@@ -92,3 +92,8 @@ fun shortcutPlan(cfg:WidgetConfig,w:Float,h:Float):ShortcutPlan {
 }
 
 fun musicIsCompact(kind:WidgetKind,height:Float)=kind==WidgetKind.COMPACT || height<148f || (kind in listOf(WidgetKind.EDITORIAL,WidgetKind.BRUTALIST)&&height<200f)
+
+fun accentTextColor(cfg:WidgetConfig):Int {
+    val color=Color.parseColor(cfg.accent)
+    return if(cfg.light)Color.rgb((Color.red(color)*.48f).toInt(),(Color.green(color)*.48f).toInt(),(Color.blue(color)*.48f).toInt()) else color
+}

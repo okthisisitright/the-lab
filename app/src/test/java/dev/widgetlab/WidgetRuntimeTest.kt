@@ -50,6 +50,19 @@ class WidgetRuntimeTest {
         assertEquals("Asia/Kolkata",layout.findViewById<android.widget.TextClock>(R.id.time).timeZone)
         assertEquals("HH:mm",layout.findViewById<android.widget.TextClock>(R.id.time).format24Hour)
     }
+    @Test @Config(sdk=[29]) fun editionTwoLayersKeepTheirColorsAndZonesOnAndroidTen() {
+        val data=RenderData(RacingSnapshot(Section(SampleRacing.drivers,sample=true),Section(SampleRacing.teams,sample=true),Section(SampleRacing.schedule,sample=true),Section(SampleRacing.result,sample=true)),MediaInfo(),BatteryInfo(73,false),AgendaData(false,emptyList()),false)
+        for(kind in listOf(WidgetKind.CLOCK,WidgetKind.DUAL,WidgetKind.DOT_CLOCK,WidgetKind.SERIF,WidgetKind.ANALOG,WidgetKind.COMPACT,WidgetKind.STRIP)){
+            val cfg=WidgetConfig(kind,timezone="Asia/Kolkata",accent="#E56152",accentText=true)
+            val layout=WidgetViews.build(context,800+kind.ordinal,cfg,data,300f,180f).apply(context,android.widget.FrameLayout(context))
+            assertNotNull(layout.findViewById<android.view.View>(R.id.surface))
+            if(kind.isClock&&kind!=WidgetKind.ANALOG){
+                val clock=layout.findViewById<android.widget.TextClock>(R.id.clock_text)
+                assertEquals("Asia/Kolkata",clock.timeZone)
+                assertEquals(Color.parseColor("#E56152"),clock.currentTextColor)
+            }
+        }
+    }
     @Test fun allFiftyDesignsHaveGenuineRegisteredProvidersAndConfiguration() {
         val providers=context.packageManager.queryBroadcastReceivers(android.content.Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).setPackage(context.packageName),android.content.pm.PackageManager.GET_META_DATA)
         assertEquals(50,providers.size)
@@ -127,7 +140,7 @@ class WidgetRuntimeTest {
         val config=WidgetConfig(WidgetKind.DUAL,timezone="Asia/Kolkata",secondaryZone="America/New_York")
         val clocks=ClockDesign.plan(config,360f,180f)
         assertEquals("Asia/Kolkata",clocks[0].zone);assertEquals("America/New_York",clocks[1].zone)
-        val profile=config.copy(images=listOf("a.jpg","b.jpg"),apps=listOf("dev.example/.Main"),caption="Quiet mornings",surface="outline",showDate=false)
+        val profile=config.copy(images=listOf("a.jpg","b.jpg"),apps=listOf("dev.example/.Main"),caption="Quiet mornings",surface="outline",showDate=false,accentText=true)
         assertEquals(profile,WidgetConfig.parse(profile.json(),WidgetKind.CLOCK))
     }
 }

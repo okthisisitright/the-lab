@@ -69,7 +69,7 @@ object WidgetViews {
                     val size=ClockDesign.fittedSize(context,t,sample)
                     child.setTextViewTextSize(R.id.clock_text,TypedValue.COMPLEX_UNIT_DIP,size)
                     child.setInt(R.id.clock_text,"setGravity",Gravity.CENTER_VERTICAL or when(t.alignment){"center"->Gravity.CENTER_HORIZONTAL;"end"->Gravity.END;else->Gravity.START})
-                    child.setTextColor(R.id.clock_text,if(t.role=="minutes"&&cfg.kind==WidgetKind.BRUTAL_CLOCK)Color.parseColor(cfg.accent) else if(t.role=="date")muted else ink)
+                    child.setTextColor(R.id.clock_text,if(cfg.accentText&&t.role in listOf("time","second","minutes","day"))accentTextColor(cfg) else if(t.role=="minutes"&&cfg.kind==WidgetKind.BRUTAL_CLOCK)Color.parseColor(cfg.accent) else if(t.role=="date")muted else ink)
                     child.setOnClickPendingIntent(R.id.clock_text,configure)
                     views.addView(slots[i],child)
                 }

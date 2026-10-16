@@ -145,6 +145,8 @@ class WidgetRenderer(private val context:Context) {
             }else{
                 rect(w*.48f,0f,w*.52f,h-31f,color);photograph(portrait,Bounds(w*.48f,0f,w*.52f,h-31f),empty=false)
                 if(portrait==null)fit(driver.number,w*.54f,h*.57f,110f,w*.4f,0x66000000,"condensed")
+                rect(w*.48f,0f,w*.52f,25f,0x65000000)
+                label(driver.nationality,w*.52f,17f,Color.WHITE,w*.48f-pad)
                 label("DRIVER / ${table.season}",max=w*.43f-pad)
                 fit(driver.number,pad,h*.43f,min(76f,h*.31f),w*.4f,color,"condensed")
                 text(driver.given,pad,h*.58f,min(18f,h*.08f),max=w*.43f-pad)
@@ -459,7 +461,7 @@ class WidgetRenderer(private val context:Context) {
                 val value=d.now.atZone(java.time.ZoneId.of(t.zone)).format(DateTimeFormatter.ofPattern(t.format,Locale.getDefault()))
                 val sample=when(t.role){"time","second"->if(t.format.contains(':'))"23:58" else "88";"minutes"->"88";else->value}
                 val size=ClockDesign.fittedSize(context,t,sample)
-                p.typeface=LabType.face(context,t.face,t.weight);p.textSize=size;p.color=if(t.role=="minutes"&&k==WidgetKind.BRUTAL_CLOCK)accent else if(t.role=="date")muted else ink
+                p.typeface=LabType.face(context,t.face,t.weight);p.textSize=size;p.color=if(cfg.accentText&&t.role in listOf("time","second","minutes","day"))accentTextColor(cfg) else if(t.role=="minutes"&&k==WidgetKind.BRUTAL_CLOCK)accent else if(t.role=="date")muted else ink
                 val lines=value.lines();val fontH=p.fontMetrics.descent-p.fontMetrics.ascent
                 var y=t.bounds.y+(t.bounds.h-lines.size*fontH)/2-p.fontMetrics.ascent
                 lines.forEach{v->val x=when(t.alignment){"center"->t.bounds.x+(t.bounds.w-p.measureText(v))/2;"end"->t.bounds.x+t.bounds.w-p.measureText(v);else->t.bounds.x};c.drawText(v,x,y,p);y+=fontH}
@@ -552,10 +554,10 @@ class WidgetRenderer(private val context:Context) {
         }
         fun launchers(){
             when(cfg.kind){
-                WidgetKind.LABEL->{fit(cfg.label,pad,h*.61f,min(48f,h*.46f),inner,ink,"serif",500);label("${cfg.caption}",pad,h-12,max=inner)}
-                WidgetKind.SECTION->{label(cfg.caption.ifBlank{"01 / PERSONAL"},pad,pad+2);fit(cfg.label.uppercase(),pad,h*.69f,min(26f,h*.3f),inner,ink,"condensed");line(pad,h-12,w-pad,h-12,accent,1.5f)}
+                WidgetKind.LABEL->{fit(cfg.label,pad,h*.61f,min(48f,h*.46f),inner,if(cfg.accentText)accentTextColor(cfg) else ink,"serif",500);label("${cfg.caption}",pad,h-12,max=inner)}
+                WidgetKind.SECTION->{label(cfg.caption.ifBlank{"01 / PERSONAL"},pad,pad+2);fit(cfg.label.uppercase(),pad,h*.69f,min(26f,h*.3f),inner,if(cfg.accentText)accentTextColor(cfg) else ink,"condensed");line(pad,h-12,w-pad,h-12,accent,1.5f)}
                 else->{
-                    if(cfg.kind==WidgetKind.LAUNCHER){fit(cfg.label,pad,40f,32f,inner,ink,"serif",500);line(pad,54f,w-pad,54f)}
+                    if(cfg.kind==WidgetKind.LAUNCHER){fit(cfg.label,pad,40f,32f,inner,if(cfg.accentText)accentTextColor(cfg) else ink,"serif",500);line(pad,54f,w-pad,54f)}
                     if(cfg.apps.isEmpty()){text("Choose your applications",pad,h*.65f,17f,ink,"sans",500,inner);return}
                     val plan=shortcutPlan(cfg,w,h);val b=plan.bounds;val cellW=b.w/plan.columns;val cellH=b.h/plan.rows
                     cfg.apps.take(plan.columns*plan.rows).forEachIndexed{i,component->

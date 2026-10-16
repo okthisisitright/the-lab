@@ -305,13 +305,14 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                     ChoiceRow("BACKGROUND",listOf("transparent" to "None","solid" to "Solid","semi" to "Translucent","tint" to "Tint","glass" to "Glass","outline" to "Outline"),cfg.surface){onChange(cfg.copy(surface=it))}
                 }
                 if((!cfg.kind.isPhoto&&cfg.kind!=WidgetKind.ARTWORK)||cfg.kind==WidgetKind.FRAME)ChoiceRow("TYPE & SURFACE COLOR",listOf("dark" to "Light type / dark surface","light" to "Dark type / light surface"),if(cfg.light)"light" else "dark"){onChange(cfg.copy(light=it=="light"))}
-                if(!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.ARTWORK,WidgetKind.CASSETTE)){
+                if(!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.ARTWORK,WidgetKind.CASSETTE,WidgetKind.GLASS,WidgetKind.STRIP,WidgetKind.GRID,WidgetKind.DRIVER,WidgetKind.MINIMAL_DRIVER,WidgetKind.CONSTRUCTOR,WidgetKind.DRIVER_PODIUM,WidgetKind.TEAM_PODIUM,WidgetKind.WEEKEND)||cfg.surface=="tint"){
                     Eyebrow("ACCENT",Modifier.padding(top=18.dp,bottom=12.dp))
                     Row(horizontalArrangement=Arrangement.spacedBy(14.dp),modifier=Modifier.horizontalScroll(rememberScrollState())){
-                        listOf("#C3D8B0","#F1E5CA","#5AC7B5","#E56152","#E6A95C","#96B2D0","#F4F4EF").forEach{hex->Box(Modifier.size(29.dp).background(Color(android.graphics.Color.parseColor(hex)),CircleShape).border(if(cfg.accent==hex)3.dp else 0.dp,White,CircleShape).clickable{onChange(cfg.copy(accent=hex))})}
+                        listOf("#C3D8B0","#F1E5CA","#5AC7B5","#E56152","#E6A95C","#96B2D0","#F4F4EF").forEach{hex->Box(Modifier.size(29.dp).background(Color(android.graphics.Color.parseColor(hex)),CircleShape).border(if(cfg.accent==hex)3.dp else 0.dp,White,CircleShape).clickable{onChange(cfg.copy(accent=hex,accentText=cfg.kind.isClock||cfg.kind.hasAgenda||cfg.kind.hasLabel||cfg.accentText))})}
                     }
                 }
                 if(!cfg.kind.isPhoto&&cfg.kind!=WidgetKind.ANALOG)ChoiceRow("TYPOGRAPHY",listOf("design" to "Original","sans" to "Swiss","condensed" to "Condensed","serif" to "Serif","technical" to "Technical","mono" to "Mono","dots" to "Dots"),cfg.typography){onChange(cfg.copy(typography=it))}
+                if((cfg.kind.isClock||cfg.kind.hasAgenda||cfg.kind.hasLabel)&&cfg.kind!=WidgetKind.ANALOG)ChoiceRow("PRIMARY TYPE COLOR",listOf("default" to "Theme","accent" to "Accent"),if(cfg.accentText)"accent" else "default"){onChange(cfg.copy(accentText=it=="accent"))}
                 if(cfg.kind.isClock&&cfg.kind!=WidgetKind.ANALOG){
                     ChoiceRow("ALIGNMENT",listOf("design" to "Original","start" to "Left","center" to "Center","end" to "Right"),cfg.alignment){onChange(cfg.copy(alignment=it))}
                     ChoiceRow("DATE",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showDate)"yes" else "no"){onChange(cfg.copy(showDate=it=="yes"))}
