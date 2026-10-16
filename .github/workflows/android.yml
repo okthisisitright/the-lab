@@ -25,6 +25,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
       - name: Set runner signing path
         run: echo "WIDGETLAB_KEYSTORE=$RUNNER_TEMP/widgetlab-release.jks" >> "$GITHUB_ENV"
