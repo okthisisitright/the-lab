@@ -210,7 +210,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     bitmap.recycle();name
 }
 
-@Composable private fun Eyebrow(text:String,modifier:Modifier=Modifier,color:Color=Soft){Text(text.lowercase().replaceFirstChar{it.titlecase()},modifier,fontFamily=Grotesk,fontSize=14.sp,lineHeight=18.sp,color=color)}
+@Composable private fun Eyebrow(text:String,modifier:Modifier=Modifier,color:Color=Soft){Text(text.lowercase().replaceFirstChar{it.titlecase()},modifier,fontFamily=Grotesk,fontSize=14.sp,lineHeight=22.sp,color=color)}
 @Composable private fun Heading(text:String,size:Int=34){Text(text,fontFamily=Grotesk,fontSize=size.coerceAtMost(36).sp,lineHeight=(size.coerceAtMost(36)*1.22f).sp,fontWeight=FontWeight.Medium,color=White)}
 @Composable private fun Rule(){HorizontalDivider(Modifier.padding(vertical=22.dp),color=Color(0xFFDEDFD8))}
 @Composable private fun Action(text:String,onClick:()->Unit,modifier:Modifier=Modifier,primary:Boolean=false,enabled:Boolean=true){
@@ -242,8 +242,8 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     Column(modifier){
         Box(Modifier.fillMaxWidth().aspectRatio(ratio).clipToBounds().background(if(transparent)when(wallpaper){1->Color(0xFFD4CDBE);2->Color(0xFF74706B);else->Color(0xFF727975)} else Color.Transparent)){
             if(transparent)Canvas(Modifier.fillMaxSize()){
-                val stroke=Color.White.copy(alpha=.045f)
-                for(i in 0..12)drawLine(stroke,androidx.compose.ui.geometry.Offset(size.width*.17f+i*size.width*.09f,-10f),androidx.compose.ui.geometry.Offset(i*size.width*.09f,size.height+10f),size.width*.035f)
+                drawCircle(Color.White.copy(alpha=.08f),size.width*.78f,androidx.compose.ui.geometry.Offset(size.width*.95f,-size.height*.25f))
+                drawCircle(Color.Black.copy(alpha=.06f),size.width*.72f,androidx.compose.ui.geometry.Offset(-size.width*.08f,size.height*1.3f))
             }
             bitmap?.let{Image(it.asImageBitmap(),"${config.kind.title} actual renderer preview",Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)}
         }
@@ -303,7 +303,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
             item{
                 ChoiceRow("PREVIEW PROPORTIONS",listOf("design" to "Default","compact" to "Wide","square" to "Square","tall" to "Tall"),previewShape){previewShape=it}
                 if(cfg.surface!="solid"&&!cfg.kind.isMusic)ChoiceRow("PREVIEW WALLPAPER",listOf("0" to "Slate","1" to "Linen","2" to "Earth"),wallpaper.toString()){wallpaper=it.toInt()}
-                Text(cfg.kind.description,color=Soft,fontSize=13.sp,lineHeight=20.sp,modifier=Modifier.padding(top=18.dp))
+                Text(cfg.kind.description,color=Soft,fontSize=13.sp,lineHeight=24.sp,modifier=Modifier.padding(top=18.dp))
             }
             item{Rule();Eyebrow("Make it yours",color=Lime)
                 if(!cfg.kind.isPhoto&&!cfg.kind.isMusic){
@@ -330,12 +330,12 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                 val entries=if(cfg.kind==WidgetKind.CONSTRUCTOR)data?.racing?.teams?.value?.entries?.map{it.id to it.name} else data?.racing?.drivers?.value?.entries?.map{it.id to it.name}
                 OptionRow(if(cfg.kind==WidgetKind.CONSTRUCTOR)"CONSTRUCTOR" else "DRIVER",entries?.find{it.first==cfg.selection}?.second ?: "First in cached standings"){picker="competitor"}
                 Action(if(cfg.image.isBlank())"Add your ${if(cfg.kind==WidgetKind.CONSTRUCTOR)"car artwork" else "portrait"}  +" else "Replace personal artwork",onArtwork,enabled=!busy)
-                Text("Use an image you have permission to use. The included Hamilton photo is a credited 2021 archive, independent of current standings.",fontSize=13.sp,color=Soft,lineHeight=17.sp)
+                Text("Use an image you have permission to use. The included Hamilton photo is a credited 2021 archive, independent of current standings.",fontSize=13.sp,color=Soft,lineHeight=22.sp)
             }}
             if(cfg.kind.isPhoto){item{
                 Rule();Eyebrow("YOUR PHOTOGRAPHS")
                 Spacer(Modifier.height(12.dp));Action(if(cfg.kind==WidgetKind.FILMSTRIP)"Choose up to 4 photographs  +" else if(cfg.kind==WidgetKind.COLLAGE)"Choose 3 photographs  +" else "Choose photograph  +",onArtwork,enabled=!busy)
-                Text("Android's photo picker grants access only to your selection. Optimized copies remain in private app storage after restart.",color=Soft,fontSize=13.sp,lineHeight=18.sp,modifier=Modifier.padding(top=10.dp))
+                Text("Android's photo picker grants access only to your selection. Optimized copies remain in private app storage after restart.",color=Soft,fontSize=13.sp,lineHeight=22.sp,modifier=Modifier.padding(top=10.dp))
                 if(cfg.photos.isNotEmpty())OptionRow("SELECTED IMAGES","${cfg.photos.size} · tap to clear"){onChange(cfg.copy(image="",images=emptyList()))}
                 if(cfg.kind in listOf(WidgetKind.FRAME,WidgetKind.POLAROID))Field("CAPTION",cfg.caption){onChange(cfg.copy(caption=it.take(120)))}
                 if(cfg.kind in listOf(WidgetKind.PHOTO,WidgetKind.FRAME))ChoiceRow("FRAME CORNERS",listOf("0" to "Square","12" to "Soft","24" to "Rounded","40" to "Round"),cfg.corners.toString()){onChange(cfg.copy(corners=it.toInt()))}
@@ -354,19 +354,19 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
             if(cfg.kind.isMusic){item{
                 Rule();Eyebrow("MEDIA CONNECTION",color=Lime)
                 Text(if(data?.mediaAccess==true)"Media access enabled" else "Connect your listening room",fontFamily=Serif,fontSize=23.sp,modifier=Modifier.padding(vertical=12.dp))
-                Text("Notification-listener access discovers active media sessions. Widget Lab does not store notification messages. Start playback in your music app to expose artwork and supported controls.",color=Soft,fontSize=14.sp,lineHeight=19.sp)
+                Text("Notification-listener access discovers active media sessions. Widget Lab does not store notification messages. Start playback in your music app to expose artwork and supported controls.",color=Soft,fontSize=14.sp,lineHeight=23.sp)
                 Spacer(Modifier.height(12.dp));Action(if(data?.mediaAccess==true)"Review Android media access  ↗" else "Enable media access  ↗",onMedia)
                 OptionRow("PLAYER",if(cfg.selection.isBlank())"Automatic" else appLabel(context,cfg.selection)){picker="media"}
             }}
-            if(cfg.kind.hasAgenda){item{Rule();Eyebrow("PRIVATE DEVICE CALENDAR");Text("Upcoming events remain on your device. Granting access is optional; permission-denied and empty-calendar states are explicit.",color=Soft,fontSize=14.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp));Action(if(data?.agenda?.permitted==true)"Calendar access granted" else "Allow read-only calendar access",onCalendar)}}
+            if(cfg.kind.hasAgenda){item{Rule();Eyebrow("PRIVATE DEVICE CALENDAR");Text("Upcoming events remain on your device. Granting access is optional; permission-denied and empty-calendar states are explicit.",color=Soft,fontSize=14.sp,lineHeight=23.sp,modifier=Modifier.padding(vertical=12.dp));Action(if(data?.agenda?.permitted==true)"Calendar access granted" else "Allow read-only calendar access",onCalendar)}}
             if(cfg.kind.hasLabel){item{Rule();Field("SECTION NAME",cfg.label){onChange(cfg.copy(label=it.take(60)))};if(cfg.kind!=WidgetKind.LAUNCHER)Field("SUPPORTING LABEL",cfg.caption){onChange(cfg.copy(caption=it.take(120)))}}}
             if(cfg.kind.hasApps){item{Rule();OptionRow("APPLICATION SHORTCUTS","${cfg.apps.size} selected · choose up to 6"){picker="apps"}
                 ChoiceRow("ICONS",listOf("original" to "Original","mono" to "Monochrome","letters" to "Initials"),cfg.iconStyle){onChange(cfg.copy(iconStyle=it))}
                 ChoiceRow("APP NAMES",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showLabels)"yes" else "no"){onChange(cfg.copy(showLabels=it=="yes"))}
-                Text("These are widget shortcuts, not native launcher folders. Missing or uninstalled applications open configuration.",color=Soft,fontSize=13.sp,lineHeight=18.sp,modifier=Modifier.padding(top=12.dp))}}
+                Text("These are widget shortcuts, not native launcher folders. Missing or uninstalled applications open configuration.",color=Soft,fontSize=13.sp,lineHeight=22.sp,modifier=Modifier.padding(top=12.dp))}}
             if(cfg.kind.isRacing){item{
                 Rule();Eyebrow("RACING SOURCE",color=Lime)
-                Text("Public Formula 1 snapshots from Jolpica. Each feed has independent timestamps and offline caching. Historical samples are labeled; no statistics are fabricated.",color=Soft,fontSize=14.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp))
+                Text("Public Formula 1 snapshots from Jolpica. Each feed has independent timestamps and offline caching. Historical samples are labeled; no statistics are fabricated.",color=Soft,fontSize=14.sp,lineHeight=23.sp,modifier=Modifier.padding(vertical=12.dp))
                 listOf("Drivers" to data?.racing?.drivers,"Constructors" to data?.racing?.teams,"Schedule" to data?.racing?.schedule,"Results" to data?.racing?.result).forEach{(name,s)->Text("$name · ${if(s?.sample!=false)"Sample · 2024" else s.refreshed?.atZone(cfg.zone())?.format(DateTimeFormatter.ofPattern("d MMM HH:mm z"))}${if(s?.error!=null)" · Offline" else ""}",color=Soft,fontFamily=Mono,fontSize=12.sp,modifier=Modifier.padding(bottom=7.dp))}
                 Action(if(busy)"Refreshing…" else "Refresh racing data  ↻",onRefresh,enabled=!busy)
             }}
@@ -380,7 +380,7 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                 cfg.kind.hasAgenda->"Native time/date with a local read-only calendar query. Agenda data refreshes approximately every 30 minutes."
                 cfg.kind.hasLabel->"A real transparent Android widget. Tap to edit this label."
                 else->"Cached racing snapshots refresh approximately every six hours. Countdown values update periodically. Session times use IANA timezones and daylight-saving rules."
-            },color=Soft,fontSize=14.sp,lineHeight=19.sp,modifier=Modifier.padding(top=12.dp,bottom=12.dp));Text("Long-press the home-screen widget to resize. Layouts change with the available space; your launcher controls the exact grid.",color=Soft,fontSize=13.sp,lineHeight=17.sp)}
+            },color=Soft,fontSize=14.sp,lineHeight=23.sp,modifier=Modifier.padding(top=12.dp,bottom=12.dp));Text("Long-press the home-screen widget to resize. Layouts change with the available space; your launcher controls the exact grid.",color=Soft,fontSize=13.sp,lineHeight=22.sp)}
         }
         Box(Modifier.background(Ground).padding(horizontal=22.dp,vertical=12.dp)){Action(if(busy)"Working…" else if(id>=0)"Apply to widget" else "Add to home screen",onSave,primary=true,enabled=!busy)}
     }
@@ -415,8 +415,8 @@ private fun appLabel(context:android.content.Context,pkg:String)=runCatching{con
         item{Eyebrow("Version ${dev.widgetlab.BuildConfig.VERSION_NAME}",color=Lime);Spacer(Modifier.height(15.dp));Heading("Settings",59);Text("A personal collection. No accounts, ads or analytics.",fontFamily=Serif,color=Soft,fontSize=20.sp,modifier=Modifier.padding(top=18.dp))}
         item{Rule();Eyebrow("RACING DATA");OptionRow("AUTOMATIC SYNC",if(automatic)"Every six hours" else "Off"){onAuto(!automatic)};Action(if(busy)"Refreshing…" else "Refresh racing feeds",onRefresh,enabled=!busy)}
         item{listOf("Drivers" to data?.racing?.drivers,"Constructors" to data?.racing?.teams,"Schedule" to data?.racing?.schedule,"Results" to data?.racing?.result).forEach{(name,s)->Text("$name · ${if(s?.sample!=false)"SAMPLE · 2024" else s.refreshed?.atZone(java.time.ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm z"))}",color=Soft,fontSize=13.sp);s?.error?.let{Text(it,color=Color(0xFFE5A494),fontSize=13.sp)}}}
-        item{Rule();Eyebrow("PERMISSIONS & DIAGNOSTICS");OptionRow("MEDIA ACCESS",if(data?.mediaAccess==true)"Enabled" else "Connect a player",onMedia);Text("Calendar: ${if(data?.agenda?.permitted==true)"granted" else "off · enable from Date or Today"}",color=Soft,fontSize=14.sp);Text("Battery: ${data?.battery?.percent ?: "—"}% · ${if(data?.battery?.charging==true)"charging" else "on battery"}",color=Soft,fontSize=14.sp,modifier=Modifier.padding(top=8.dp));Text("DND: ${data?.focus?.title ?: "Unknown"}",color=Soft,fontSize=14.sp,modifier=Modifier.padding(top=8.dp));Spacer(Modifier.height(16.dp));Action("Refresh installed widgets",onRedraw);OptionRow("ANDROID APP SETTINGS","Permissions & power management",onSystem);Text(WidgetDiagnostics.summary(context),color=Soft,fontSize=13.sp,lineHeight=20.sp,modifier=Modifier.padding(vertical=16.dp));Text("On Vivo, allow background activity and autostart if media or periodic data updates stop. Time displays use native Android clocks. Physical Vivo launcher behavior still needs device testing.",color=Soft,fontSize=14.sp,lineHeight=19.sp)}
-        item{Rule();Eyebrow("LOCAL BY DESIGN");Text("Photos and widget profiles stay in app-private storage. Calendar information is never uploaded. Media metadata stays in memory. Android backup is disabled. Uninstalling removes your local settings. Only public racing feeds use the network.",color=Soft,fontSize=14.sp,lineHeight=19.sp);OptionRow("CREDITS & LICENSES","Type, imagery and data"){licenses=true};Text("A little space for you.",fontFamily=Serif,fontSize=30.sp,lineHeight=35.sp,modifier=Modifier.padding(vertical=22.dp))}
+        item{Rule();Eyebrow("PERMISSIONS & DIAGNOSTICS");OptionRow("MEDIA ACCESS",if(data?.mediaAccess==true)"Enabled" else "Connect a player",onMedia);Text("Calendar: ${if(data?.agenda?.permitted==true)"granted" else "off · enable from Date or Today"}",color=Soft,fontSize=14.sp);Text("Battery: ${data?.battery?.percent ?: "—"}% · ${if(data?.battery?.charging==true)"charging" else "on battery"}",color=Soft,fontSize=14.sp,modifier=Modifier.padding(top=8.dp));Text("DND: ${data?.focus?.title ?: "Unknown"}",color=Soft,fontSize=14.sp,modifier=Modifier.padding(top=8.dp));Spacer(Modifier.height(16.dp));Action("Refresh installed widgets",onRedraw);OptionRow("ANDROID APP SETTINGS","Permissions & power management",onSystem);Text(WidgetDiagnostics.summary(context),color=Soft,fontSize=13.sp,lineHeight=24.sp,modifier=Modifier.padding(vertical=16.dp));Text("On Vivo, allow background activity and autostart if media or periodic data updates stop. Time displays use native Android clocks. Physical Vivo launcher behavior still needs device testing.",color=Soft,fontSize=14.sp,lineHeight=23.sp)}
+        item{Rule();Eyebrow("LOCAL BY DESIGN");Text("Photos and widget profiles stay in app-private storage. Calendar information is never uploaded. Media metadata stays in memory. Android backup is disabled. Uninstalling removes your local settings. Only public racing feeds use the network.",color=Soft,fontSize=14.sp,lineHeight=23.sp);OptionRow("CREDITS & LICENSES","Type, imagery and data"){licenses=true};Text("A little space for you.",fontFamily=Serif,fontSize=30.sp,lineHeight=35.sp,modifier=Modifier.padding(vertical=22.dp))}
     }
     if(licenses)AlertDialog(onDismissRequest={licenses=false},title={Text("Credits & licenses")},text={Text(notices,Modifier.verticalScroll(rememberScrollState()),fontSize=10.sp,lineHeight=16.sp)},confirmButton={TextButton(onClick={licenses=false}){Text("Close")}})
 }

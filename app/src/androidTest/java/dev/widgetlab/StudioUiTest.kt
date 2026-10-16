@@ -27,5 +27,9 @@ class StudioUiTest {
         compose.onNodeWithText("Solid").performScrollTo().performClick()
         compose.onNodeWithText("None").performScrollTo().performClick()
         compose.onNodeWithText("Add to home screen").assertIsDisplayed()
+        compose.onNodeWithText("←").performClick()
+        compose.onNodeWithText("Music").performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Glass mini actual renderer preview").performScrollTo().assertIsDisplayed()
+        screenshot("03-music-gallery")
     }
 }
