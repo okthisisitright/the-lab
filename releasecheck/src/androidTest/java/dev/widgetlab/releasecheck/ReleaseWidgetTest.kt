@@ -98,11 +98,19 @@ class ReleaseWidgetTest {
                         putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,140)
                         putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,140)
                     })
-                    awaitSurface(view,"resize ${info.provider.className}")
-                    instrumentation.runOnMainSync{
-                        val bitmap=(surface(view)!!.drawable as BitmapDrawable).bitmap
-                        assertEquals("Resize changes bitmap aspect ratio",330f/140,bitmap.width.toFloat()/bitmap.height,.03f)
+                    // Host callbacks and provider broadcasts are asynchronous. An already queued
+                    // pre-resize update can arrive first; wait for the requested geometry itself.
+                    val expected=330f/140
+                    var ratio=0f
+                    val resizeDeadline=System.currentTimeMillis()+15_000
+                    while(kotlin.math.abs(ratio-expected)>.03f&&System.currentTimeMillis()<resizeDeadline){
+                        instrumentation.runOnMainSync{
+                            val bitmap=(surface(view)?.drawable as? BitmapDrawable)?.bitmap
+                            ratio=if(bitmap!=null)bitmap.width.toFloat()/bitmap.height else 0f
+                        }
+                        if(kotlin.math.abs(ratio-expected)>.03f)Thread.sleep(100)
                     }
+                    assertEquals("Resize delivers requested geometry for ${info.provider.className}; options=${manager.getAppWidgetOptions(id)}",expected,ratio,.03f)
                 }
                 if(info.provider.className.endsWith("ClockWidget")){
                     shell("am kill --user 0 dev.widgetlab")
