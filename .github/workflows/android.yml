@@ -15,7 +15,6 @@ jobs:
     timeout-minutes: 30
     env:
       SIGNING_B64: ${{ secrets.WIDGETLAB_KEYSTORE_BASE64 }}
-      WIDGETLAB_KEYSTORE: ${{ runner.temp }}/widgetlab-release.jks
       WIDGETLAB_STORE_PASSWORD: ${{ secrets.WIDGETLAB_STORE_PASSWORD }}
       WIDGETLAB_KEY_ALIAS: ${{ secrets.WIDGETLAB_KEY_ALIAS }}
       WIDGETLAB_KEY_PASSWORD: ${{ secrets.WIDGETLAB_KEY_PASSWORD }}
@@ -27,6 +26,8 @@ jobs:
           java-version: '17'
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
+      - name: Set runner signing path
+        run: echo "WIDGETLAB_KEYSTORE=$RUNNER_TEMP/widgetlab-release.jks" >> "$GITHUB_ENV"
       - name: Install SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Reuse development signing identity
