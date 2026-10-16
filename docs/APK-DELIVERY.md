@@ -1,6 +1,6 @@
 # Installing Widget Lab without the Codex file viewer
 
-Delivery investigation: 15 October 2026. No Android source changes or new app build were required.
+Delivery verified: 16 October 2026. The existing optimized APK was published without rebuilding or changing the application. A separate GitHub debug build was started to verify future build delivery.
 
 ## Existing APK verification
 
@@ -22,71 +22,66 @@ A smaller existing optimized release output was already available. It was signed
 - Same certificate SHA-256 as the original: `e1eac9a80df5a56dba2f65e2cf23f1c7449dd33fbcd658172a31acdad5c30368`.
 - File SHA-256: `20f55a91c2df94b323317e0fb0141105f85df08be6adfc7bbf3b4fd03e2b169e`.
 
-The smaller file and shared-downloads path may avoid the large-file timeout, but successful local verification does not prove that the Codex download UI will transfer it. GitHub delivery below bypasses that UI entirely.
+## Verified GitHub download
 
-## GitHub status
+Repository: https://github.com/okthisisitright/the-lab . Source and workflows were pushed successfully. The owner authorized proceeding with its current public visibility and will manage visibility separately.
 
-Target repository: https://github.com/okthisisitright/the-lab . The owner explicitly instructed proceeding with its current public visibility and will change that later. Visibility is therefore not a blocker.
+- **Direct APK:** https://github.com/okthisisitright/the-lab/releases/download/widget-lab-0.1.0-test/WidgetLab-0.1.0-small.apk
+- **Release page:** https://github.com/okthisisitright/the-lab/releases/tag/widget-lab-0.1.0-test
+- **Actions artifact:** https://github.com/okthisisitright/the-lab/actions/runs/38839324832/artifacts/12020540843
+- **Successful publishing run:** https://github.com/okthisisitright/the-lab/actions/runs/38839324832
+- **Repository download fallback:** https://github.com/okthisisitright/the-lab/raw/refs/heads/main/prebuilt/WidgetLab-0.1.0-small.apk
 
-Publishing was attempted after that instruction. Both standard Git push (including the GitHub CLI credential helper) and the GitHub connector contents API refused writes with **HTTP 403: Resource not accessible by integration**. No initial project file was created remotely. The connector reports no available GitHub App installations, and the latest CLI authentication check returns HTTP 401. The repository metadata's user-role `push: true` does not establish that the integration token can write.
+The publishing run verified the committed APK checksum, uploaded **Widget-Lab-existing-APK** with `actions/upload-artifact@v4`, and published the APK plus checksum as release assets. GitHub reports the APK asset as uploaded, with exactly **3,480,563 bytes**. Both the repository download and the release-asset download were fetched independently without the Codex viewer. Their SHA-256 matched the verified local APK. Android `apksigner` also verified the downloaded release asset and its development certificate.
 
-Complete GitHub app setup through ChatGPT Settings → Apps → GitHub → Configure/Manage and include **the-lab** in its repository access. This is an external authorization/setup requirement; repeating a build cannot fix it. No push, workflow dispatch, release asset upload or Actions artifact upload has succeeded. Exact run/artifact links do not yet exist.
+### Install on an Android phone
 
-The workflow is committed and validated with actionlint. An unsupported job-level runner-context expression was fixed before publication. The APK remains unchanged and ready to upload.
+1. Open the direct APK link above in the phone browser. If the repository becomes private, sign in to GitHub and use the release page if a direct download requests authentication.
+2. Open **WidgetLab-0.1.0-small.apk** from Downloads. This is an APK, so there is no ZIP to extract.
+3. If prompted, allow **Install unknown apps** for the browser or file manager used to open it, then tap **Install**.
+4. Open Widget Lab. Choose a design → **Add to Home Screen**, or long-press the launcher → Widgets → Widget Lab.
+
+The existing APK is development-signed. Physical Vivo and third-party-player acceptance remain unverified; see [the device checklist](DEVICE-TESTING.md).
 
 ## Build and download through Actions
 
-The workflow is `.github/workflows/android.yml`, named **Android APK**. It supports manual `workflow_dispatch` and pushes to `main`.
+The workflow is `.github/workflows/android.yml`, named **Android APK**. It supports manual `workflow_dispatch`, pushes to `main`, and pull requests. It builds `:app:assembleDebug`, immediately uploads `app/build/outputs/apk/debug/app-debug.apk` using **actions/upload-artifact@v4**, and writes the exact artifact URL to the run summary. Test/lint/release tasks follow the upload. Artifacts are retained for 30 days; debug builds need no release-signing secrets.
 
-It now runs `:app:assembleDebug`, immediately uploads `app/build/outputs/apk/debug/app-debug.apk` with **actions/upload-artifact@v4**, and writes the actual artifact URL to the run summary. Test/lint/release tasks follow the upload, so a later release/check failure does not prevent an already-built debug APK being delivered. Artifacts are retained for 30 days. No release-signing secrets are required for the debug artifact.
+The SDK setup explicitly installs `platform-tools` rather than the action's obsolete default `tools` package. All workflow files pass actionlint. The initial GitHub run exposed this SDK setup failure; the corrected run is:
 
-After connecting the intended repository and authorizing GitHub:
+https://github.com/okthisisitright/the-lab/actions/runs/38839317610
+
+The corrected run successfully compiled and uploaded its debug APK:
+
+- **Debug artifact:** https://github.com/okthisisitright/the-lab/actions/runs/38839317610/artifacts/12020019952
+- **Artifact name:** Widget-Lab-development-APK
+- **ZIP contents:** app-debug.apk
+
+The separate tests/lint/release step runs after this upload; its result does not affect availability of this already-uploaded APK.
+
+To start another debug build:
+
+1. Open https://github.com/okthisisitright/the-lab/actions/workflows/android.yml .
+2. Select **Run workflow → main → Run workflow**.
+3. Open the run; once **Development APK** succeeds, follow its summary link or choose **Artifacts → Widget-Lab-development-APK**. On mobile, enable **Desktop site** if needed.
+4. Download the artifact ZIP, extract **app-debug.apk**, open it, and allow installation as described above.
+
+Equivalent CLI commands:
 
 ```sh
-# Only if origin has not already been configured; replace okthisisitright/the-lab.
-git remote add origin https://github.com/okthisisitright/the-lab.git
-git push -u origin main
 gh workflow run android.yml --repo okthisisitright/the-lab --ref main
 gh run list --repo okthisisitright/the-lab --workflow android.yml --limit 5
-```
-
-A push to main also starts the workflow; a manual dispatch is optional if a push run is already active. If the remote already contains commits, reconcile the histories normally before pushing; do not force-push over it.
-
-Phone/browser steps:
-
-1. Sign in to GitHub and open the repository.
-2. Open **Actions → Android APK → Run workflow → main → Run workflow**.
-3. Open the new run. The APK is available once the **Development APK** step completes, even if later checks are still running.
-4. Follow **Download Widget-Lab-development-APK** in the run summary, or scroll to **Artifacts → Widget-Lab-development-APK**. On mobile, enable the browser’s **Desktop site** if Actions/Artifacts are hidden.
-5. Download the artifact ZIP and extract **app-debug.apk** with the Android Files app or another ZIP extractor.
-6. Open the APK. If prompted, allow **Install unknown apps** for the browser/file manager you are using, then choose **Install**.
-7. Open Widget Lab. Choose a design → **Add to Home Screen**, or use your launcher’s Widgets picker.
-
-Artifact location after an actual run:
-
-- Run page: `https://github.com/okthisisitright/the-lab/actions/runs/RUN_ID`
-- Artifact name: **Widget-Lab-development-APK**
-- File inside its ZIP: **app-debug.apk**
-- The upload step provides the exact artifact download-page URL in the run summary. Its artifact ID does not exist before a successful upload, so an exact URL cannot be supplied in advance.
-
-Terminal download, once the run/artifact exists:
-
-```sh
 gh run download RUN_ID --repo okthisisitright/the-lab --name Widget-Lab-development-APK --dir widgetlab-apk
 ```
 
-The locally signed APK and a newly generated CI development key may differ. If Android refuses to update an existing Widget Lab installation because of its signature, uninstall the old installation before installing the new one (this removes its local settings), or configure a stable private signing key for later updates.
+CI generates/caches its own development signing key. That differs from the locally signed existing APK above. If Android refuses an update because of the signature, uninstalling the old app permits installation but deletes its local settings. Stay with the existing release for initial testing; configure a stable private signing key for future updates.
 
-## Deliver this existing APK without any rebuild
+## Republish the existing APK without a build
 
-With a connected private repository and working GitHub authorization, the already-signed small APK can be uploaded as a private GitHub Release asset:
+`.github/workflows/publish-existing-apk.yml`, **Publish existing APK**, is manual-only. Its source APK, checksum and notes live in `prebuilt/`. It uses the GitHub runner's `GITHUB_TOKEN` to upload the artifact and release assets; no developer token or signing key is committed.
 
 ```sh
-gh release create widget-lab-0.1.0-test \
-  /workspace/shared/downloads/WidgetLab-0.1.0-small.apk \
-  --repo okthisisitright/the-lab \
-  --title 'Widget Lab 0.1.0 device test' \
-  --notes 'Existing optimized APK, development-signed. No new application build.'
+gh workflow run publish-existing-apk.yml --repo okthisisitright/the-lab --ref main
 ```
 
-Then use the repository’s **Releases → Widget Lab 0.1.0 device test → Assets → WidgetLab-0.1.0-small.apk** from a signed-in phone browser. This downloads an APK directly, without the Codex viewer or an artifact ZIP. This command has **not** been executed in this session until the source is pushed and the release asset upload is verified. No APK was sent to an unrelated public file host.
+This path was used successfully because the local CLI's release-upload host rejected its injected credentials even after Git push/API access worked. No APK was uploaded to an unrelated file host, and no application rebuild was required for this release.
