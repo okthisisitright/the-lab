@@ -23,7 +23,7 @@ class StudioUiTest {
         compose.onNodeWithContentDescription("Minimal clock actual renderer preview").performScrollTo().performClick()
         compose.onNodeWithText("Minimal clock").assertIsDisplayed()
         screenshot("02-clock-detail")
-        compose.onNodeWithTag("design-settings").performScrollToNode(hasText("BACKGROUND"))
+        compose.onNodeWithTag("design-settings").performScrollToNode(hasText("Background"))
         compose.onNodeWithText("Solid").performScrollTo().performClick()
         compose.onNodeWithText("None").performScrollTo().performClick()
         compose.onNodeWithText("Add to home screen").assertIsDisplayed()
