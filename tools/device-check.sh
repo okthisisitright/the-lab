@@ -7,5 +7,6 @@ mkdir -p app/build/device-visuals
 adb exec-out run-as dev.widgetlab tar -cf - files/visuals 2>/dev/null | tar -xf - -C app/build/device-visuals 2>/dev/null
 adb pull /data/local/tmp/widgetlab-01-studio-home.png app/build/device-visuals/ 2>/dev/null
 adb pull /data/local/tmp/widgetlab-02-clock-detail.png app/build/device-visuals/ 2>/dev/null
-adb logcat -d -s AndroidRuntime:E WidgetLab:W > app/build/device-visuals/runtime.txt
+adb logcat -d -s AndroidRuntime:E WidgetLab:W ActivityManager:W > app/build/device-visuals/runtime.txt
+adb shell dumpsys activity lastanr > app/build/device-visuals/last-anr.txt
 exit "$widgetlab_test_status"

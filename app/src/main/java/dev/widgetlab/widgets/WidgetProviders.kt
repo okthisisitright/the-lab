@@ -30,7 +30,7 @@ object ProviderCatalog {
         val provider = AppWidgetManager.getInstance(context).getAppWidgetInfo(id)?.provider ?: return null
         return WidgetKind.entries.firstOrNull { component(context,it)==provider }
     }
-    fun installed(context: Context): List<Pair<Int, WidgetKind>> = WidgetKind.entries.flatMap { k -> AppWidgetManager.getInstance(context).getAppWidgetIds(component(context,k)).map { it to k } }
+    fun installed(context: Context,musicOnly:Boolean=false): List<Pair<Int, WidgetKind>> = WidgetKind.entries.filter{!musicOnly||it.isMusic}.flatMap { k -> AppWidgetManager.getInstance(context).getAppWidgetIds(component(context,k)).map { it to k } }
 }
 
 abstract class LabProvider : AppWidgetProvider() {
@@ -59,7 +59,8 @@ object WidgetUpdates {
     fun request(context: Context, musicOnly: Boolean = false) { if(!musicOnly)fullRequested.set(true); requests.trySend(context.applicationContext) }
     suspend fun updateAll(context: Context) = updateIds(context,null)
     suspend fun updateIds(context: Context,ids: Set<Int>?,musicOnly:Boolean=false) = mutex.withLock {
-        val installed=ProviderCatalog.installed(context).filter { (ids==null || it.first in ids) && (!musicOnly||it.second.isMusic) }
+        val installed=(if(ids==null)ProviderCatalog.installed(context,musicOnly) else ids.mapNotNull{id->ProviderCatalog.kind(context,id)?.let{id to it}})
+            .filter{!musicOnly||it.second.isMusic}
         if(installed.isEmpty()) return@withLock
         val snapshot=RacingRepository(context).snapshot()
         val battery=DeviceData.battery(context)

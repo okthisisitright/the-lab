@@ -26,9 +26,13 @@ class LabApplication: Application() {
     }
 }
 object RefreshScheduling {
+    private val initialized=java.util.concurrent.atomic.AtomicBoolean(false)
     fun ensure(context: Context) {
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork("widget-system-v1",ExistingPeriodicWorkPolicy.KEEP,PeriodicWorkRequestBuilder<SystemRefreshWorker>(30,TimeUnit.MINUTES).build())
-        WidgetUpdates.scope.launch { racing(context,AppPreferences(context).automatic.first()) }
+        if(!initialized.compareAndSet(false,true))return
+        try{
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork("widget-system-v1",ExistingPeriodicWorkPolicy.KEEP,PeriodicWorkRequestBuilder<SystemRefreshWorker>(30,TimeUnit.MINUTES).build())
+            WidgetUpdates.scope.launch { racing(context,AppPreferences(context).automatic.first()) }
+        }catch(error:RuntimeException){initialized.set(false);throw error}
     }
     fun racing(context: Context,enabled: Boolean) {
         val manager=WorkManager.getInstance(context)
