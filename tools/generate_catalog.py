@@ -53,11 +53,11 @@ for face in ['sans','thin','bold','condensed','serif','technical','mono','dots']
     </FrameLayout>\n'''
         base+=f'''    <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:visibility="gone" android:dial="@drawable/dial_{'dark' if light else 'light'}" android:hand_hour="@drawable/hand_hour_{'dark' if light else 'light'}" android:hand_minute="@drawable/hand_minute_{'dark' if light else 'light'}" />
     <ImageView android:id="@+id/analog_cap" android:layout_width="12dp" android:layout_height="12dp" android:layout_gravity="center" android:importantForAccessibility="no" android:visibility="gone" />
-    <LinearLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="48dp" android:layout_gravity="bottom" android:gravity="end|center_vertical" android:paddingEnd="12dp" android:orientation="horizontal" android:visibility="gone">
+    <FrameLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
 '''
         for id in ['previous','toggle','next']:
-            base+=f'        <ImageView android:id="@+id/{id}" android:layout_width="44dp" android:layout_height="44dp" android:padding="10dp" android:src="@drawable/control_{"play" if id=="toggle" else id}" android:contentDescription="{id}" />\n'
-        base+='''    </LinearLayout>
+            base+=f'        <FrameLayout android:id="@+id/{id}_slot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone"><ImageView android:id="@+id/{id}" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:src="@drawable/control_{"play" if id=="toggle" else id}" android:contentDescription="{id}" /></FrameLayout>\n'
+        base+='''    </FrameLayout>
     <LinearLayout android:id="@+id/shortcut_host" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone" />
 </FrameLayout>\n'''
         (app/f'res/layout/surface_{face}_{"light" if light else "dark"}.xml').write_text(base)
@@ -85,12 +85,12 @@ for face in ['sans','condensed','serif','technical','mono','dots']:
         for alignment in ['start','center','end']:
             gravity='center_horizontal' if alignment=='center' else alignment
             (app/f'res/layout/tick_{face}_{weight}_{alignment}.xml').write_text(f'<TextClock xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/clock_text" android:layout_width="match_parent" android:layout_height="match_parent" android:includeFontPadding="false" android:gravity="{gravity}|center_vertical" android:fontFamily="@font/{font}" android:textFontWeight="{weight}" android:textSize="48sp" android:format12Hour="h:mm" android:format24Hour="HH:mm" />')
-lines=['# The 50 objects / Edition II','', 'Every row corresponds to a registered Android AppWidgetProvider. Launcher cell sizes vary; resize ranges below describe the intended supported grid. Compact layouts retain only information that fits.','', '| # | Design | Supported grid | Function | Customization |','|---|---|---|---|---|']
+lines=['# Widget catalog','', 'Every row corresponds to a registered Android AppWidgetProvider. Launcher cell sizes vary; resize ranges below describe the intended supported grid. Compact layouts retain only information that fits.','', '| # | Design | Supported grid | Function | Customization |','|---|---|---|---|---|']
 for index,(key,title,col,size,height,desc) in enumerate(items,1):
-    options=['theme / typography'] if col!='PHOTO' else ['photo selection','focal alignment']
+    options=['theme / typography'] if col not in ['PHOTO','MUSIC'] else ['photo selection','focal alignment'] if col=='PHOTO' else []
     if col=='CLOCKS':options+=['surface / transparency','time format' if key!='ANALOG' else 'native dial','timezone','date / weekday' if key!='ANALOG' else 'API 31+ zone']
     if col=='RACING':options+=['surface','accent','driver / portrait' if key in ['DRIVER','MINIMAL_DRIVER'] else 'team / car art' if key=='CONSTRUCTOR' else 'row limit' if 'STANDINGS' in key else 'IANA timezone' if key in ['WEEKEND','WEEKEND_EDITORIAL','COUNTDOWN'] else 'cached source']
-    if col=='MUSIC':options+=['preferred media app','surface','real session artwork']
+    if col=='MUSIC':options+=['preferred media app','real session artwork']+(['appearance'] if key=='ARTWORK' else [])+(['corners'] if key not in ['VINYL','CASSETTE'] else [])
     if col=='PHOTO':options+=['corners' if key in ['PHOTO','FRAME'] else 'multi-image layout' if key in ['COLLAGE','FILMSTRIP'] else 'caption']
     if key=='FRAME':options+=['caption','frame theme']
     if col=='ESSENTIALS':options+=['surface','accent','calendar permission / timezone' if key in ['DATE','TODAY'] else 'actual device status']

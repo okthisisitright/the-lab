@@ -70,7 +70,7 @@ open class MainActivity: ComponentActivity() {
     open val configuring=false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),navigationBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
+        enableEdgeToEdge(statusBarStyle=SystemBarStyle.light(android.graphics.Color.TRANSPARENT,android.graphics.Color.TRANSPARENT),navigationBarStyle=SystemBarStyle.light(android.graphics.Color.TRANSPARENT,android.graphics.Color.TRANSPARENT))
         if(configuring) setResult(Activity.RESULT_CANCELED)
         val id=if(configuring) intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,-1) else -1
         val kind=if(id!=-1) ProviderCatalog.kind(this,id) else null
@@ -85,16 +85,16 @@ open class MainActivity: ComponentActivity() {
 }
 class WidgetConfigureActivity: MainActivity() { override val configuring=true }
 
-private val Lime=Color(0xFFC3D8B0)
-private val Ground=Color(0xFF111417)
-private val Soft=Color(0xFF9DA5A6)
-private val White=Color(0xFFF3F1E9)
-private val Grotesk=FontFamily(Font(R.font.inter))
-private val Display=FontFamily(Font(R.font.condensed))
-private val Serif=FontFamily(Font(R.font.serif))
-private val Mono=FontFamily(Font(R.font.mono))
+private val Lime=Color(0xFFBE3B30)
+private val Ground=Color(0xFFF6F6F3)
+private val Soft=Color(0xFF6A6B67)
+private val White=Color(0xFF20211F)
+private val Grotesk=FontFamily(Font(R.font.google_sans))
+private val Display=Grotesk
+private val Serif=Grotesk
+private val Mono=Grotesk
 @Composable fun LabTheme(content:@Composable ()->Unit) {
-    MaterialTheme(colorScheme=darkColorScheme(primary=Lime,onPrimary=Ground,background=Ground,surface=Color(0xFF1D2327),onSurface=White,onBackground=White,outline=Color(0xFF424B4E)),typography=Typography().let{it.copy(bodyLarge=it.bodyLarge.copy(fontFamily=Grotesk),bodyMedium=it.bodyMedium.copy(fontFamily=Grotesk),labelLarge=it.labelLarge.copy(fontFamily=Grotesk))},content=content)
+    MaterialTheme(colorScheme=lightColorScheme(primary=White,onPrimary=Ground,background=Ground,surface=Ground,onSurface=White,onBackground=White,outline=Color(0xFFD5D6D0)),typography=Typography().let{it.copy(bodyLarge=it.bodyLarge.copy(fontFamily=Grotesk),bodyMedium=it.bodyMedium.copy(fontFamily=Grotesk),labelLarge=it.labelLarge.copy(fontFamily=Grotesk))},content=content)
 }
 
 @Composable private fun LabApp(activity: MainActivity,initialId: Int,initialKind: WidgetKind?) {
@@ -106,7 +106,7 @@ private val Mono=FontFamily(Font(R.font.mono))
     var profile by rememberSaveable {mutableStateOf(initialKind?.let {kind ->
         (if(store.contains(initialId)) store.read(initialId,kind) else store.pendingConfig(kind) ?: WidgetConfig(kind)).json()
     }.orEmpty())}
-    var collectionName by rememberSaveable {mutableStateOf(Collection.RACING.name)}
+    var collectionName by rememberSaveable {mutableStateOf(Collection.CLOCKS.name)}
     var version by remember {mutableIntStateOf(0)}
     var data by remember {mutableStateOf<RenderData?>(null)}
     var installed by remember {mutableStateOf(ProviderCatalog.installed(context))}
@@ -151,10 +151,19 @@ private val Mono=FontFamily(Font(R.font.mono))
         store.remember(config);recent=store.recent()
         if(editingId>=0) {
             store.save(editingId,config)
-            scope.launch {WidgetUpdates.updateAll(context)}
-            if(activity.configuring) {
-                activity.setResult(Activity.RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,editingId));activity.finish()
-            } else {message="Widget updated.";screen="installed";editingId=-1}
+            val savedId=editingId
+            busy=true
+            scope.launch {
+                // Android does not send another onUpdate after a required configuration activity.
+                // Finish only AFTER the first RemoteViews has reached AppWidgetManager. Finishing
+                // earlier cancels this Compose coroutine and leaves the launcher's loading view.
+                val updated=withContext(Dispatchers.IO){runCatching{WidgetUpdates.updateIds(context.applicationContext,setOf(savedId))}.getOrElse{WidgetDiagnostics.failure(context,savedId,it);false}}
+                busy=false
+                if(!updated) { message="This widget could not load. Please try Apply again.";return@launch }
+                if(activity.configuring) {
+                    activity.setResult(Activity.RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,savedId));activity.finish()
+                } else {message="Widget updated.";screen="installed";editingId=-1}
+            }
         } else {
             val manager=AppWidgetManager.getInstance(context)
             if(manager.isRequestPinAppWidgetSupported) {
@@ -169,12 +178,12 @@ private val Mono=FontFamily(Font(R.font.mono))
     }
     Surface(Modifier.fillMaxSize(),color=Ground) {
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-            Row(Modifier.fillMaxWidth().padding(horizontal=22.dp,vertical=14.dp),verticalAlignment=Alignment.CenterVertically) {
-                Text(if(screen=="home") "w/l." else "←",color=White,fontSize=27.sp,fontWeight=FontWeight.Bold,fontFamily=Grotesk,modifier=Modifier.clickable{if(screen!="home")back()}.padding(end=14.dp))
-                Column(Modifier.weight(1f)){Text("WIDGET LAB",fontFamily=Grotesk,fontSize=11.sp,fontWeight=FontWeight.Bold,letterSpacing=2.sp);Text("PERSONAL OBJECTS / EDITION II",color=Soft,fontFamily=Mono,fontSize=7.sp,letterSpacing=1.sp)}
-                Text(if(screen=="settings")"CLOSE ×" else "STUDIO ↗",color=Soft,fontFamily=Mono,fontSize=10.sp,modifier=Modifier.clickable{screen=if(screen=="settings")"home" else "settings"}.padding(10.dp))
+            Row(Modifier.fillMaxWidth().padding(horizontal=26.dp,vertical=20.dp),verticalAlignment=Alignment.CenterVertically) {
+                if(screen!="home") Text("←",fontSize=25.sp,color=White,modifier=Modifier.clickable{back()}.padding(end=18.dp,top=8.dp,bottom=8.dp))
+                Box(Modifier.size(8.dp).background(Lime,CircleShape))
+                Text("Widget Lab",fontFamily=Grotesk,fontSize=22.sp,fontWeight=FontWeight.Medium,color=White,modifier=Modifier.weight(1f).padding(start=12.dp))
+                Text(if(screen=="settings")"Done" else "Settings",color=Soft,fontFamily=Grotesk,fontSize=14.sp,modifier=Modifier.clickable{screen=if(screen=="settings")"home" else "settings"}.padding(vertical=12.dp,horizontal=6.dp))
             }
-            HorizontalDivider(color=Color(0xFF303332))
             when(screen) {
                 "home" -> Home(data,installed.size,recent,collectionName,{collectionName=it.name},::choose,{c->editingId=-1;profile=c.json();screen="detail"},{screen="installed"})
                 "detail" -> Detail(config,currentData,editingId,busy,{profile=it.json()},::save,::refresh,{activity.mediaSettings()},{calendar.launch(Manifest.permission.READ_CALENDAR)},{if(config.kind in listOf(WidgetKind.FILMSTRIP,WidgetKind.COLLAGE))multiArtwork.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) else artwork.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))})
@@ -183,8 +192,8 @@ private val Mono=FontFamily(Font(R.font.mono))
             }
         }
     }
-    if(message!=null) AlertDialog(onDismissRequest={message=null},title={Text("Widget Lab")},text={Text(message.orEmpty())},confirmButton={TextButton(onClick={message=null}){Text("GOT IT")}})
-    if(manualHelp) AlertDialog(onDismissRequest={manualHelp=false},title={Text("Add through your launcher")},text={Text("Long-press an empty home-screen area → Widgets → Widget Lab → ${config.kind.title}. Place the widget, then choose its settings. Layout sizes depend on your launcher grid.")},confirmButton={TextButton(onClick={manualHelp=false}){Text("GOT IT")}})
+    if(message!=null) AlertDialog(onDismissRequest={message=null},title={Text("Widget Lab")},text={Text(message.orEmpty())},confirmButton={TextButton(onClick={message=null}){Text("OK")}})
+    if(manualHelp) AlertDialog(onDismissRequest={manualHelp=false},title={Text("Add through your launcher")},text={Text("Long-press an empty home-screen area → Widgets → Widget Lab → ${config.kind.title}. Place the widget, then choose its settings. Layout sizes depend on your launcher grid.")},confirmButton={TextButton(onClick={manualHelp=false}){Text("OK")}})
 }
 
 private suspend fun importArtwork(context: android.content.Context,uri: Uri): String = withContext(Dispatchers.IO) {
@@ -201,23 +210,23 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     bitmap.recycle();name
 }
 
-@Composable private fun Eyebrow(text:String,modifier:Modifier=Modifier,color:Color=Soft){Text(text.uppercase(),modifier,fontFamily=Mono,fontSize=9.sp,letterSpacing=1.sp,color=color)}
-@Composable private fun Heading(text:String,size:Int=38){Text(text,fontFamily=Display,fontSize=size.sp,lineHeight=(size*.95f).sp,fontWeight=FontWeight.SemiBold,color=White)}
-@Composable private fun Rule(){HorizontalDivider(Modifier.padding(vertical=20.dp),color=Color(0xFF343C40))}
+@Composable private fun Eyebrow(text:String,modifier:Modifier=Modifier,color:Color=Soft){Text(text.lowercase().replaceFirstChar{it.titlecase()},modifier,fontFamily=Grotesk,fontSize=14.sp,lineHeight=18.sp,color=color)}
+@Composable private fun Heading(text:String,size:Int=34){Text(text,fontFamily=Grotesk,fontSize=size.coerceAtMost(36).sp,lineHeight=(size.coerceAtMost(36)*1.22f).sp,fontWeight=FontWeight.Medium,color=White)}
+@Composable private fun Rule(){HorizontalDivider(Modifier.padding(vertical=22.dp),color=Color(0xFFDEDFD8))}
 @Composable private fun Action(text:String,onClick:()->Unit,modifier:Modifier=Modifier,primary:Boolean=false,enabled:Boolean=true){
-    Box(modifier.fillMaxWidth().background(if(primary)Lime else Color(0xFF242C30)).clickable(enabled=enabled,onClick=onClick).padding(horizontal=17.dp,vertical=17.dp)){
-        Text(text,Modifier.fillMaxWidth(),color=if(primary)Ground else White,fontFamily=Grotesk,fontSize=13.sp,fontWeight=FontWeight.SemiBold)
+    Box(modifier.fillMaxWidth().clip(RoundedCornerShape(30.dp)).background(if(primary)White else Color(0xFFE9EAE4)).clickable(enabled=enabled,onClick=onClick).padding(horizontal=22.dp,vertical=18.dp),contentAlignment=Alignment.Center){
+        Text(text,color=if(primary)Ground else White,fontFamily=Grotesk,fontSize=15.sp,fontWeight=FontWeight.Medium)
     }
 }
 @Composable private fun ChoiceRow(label:String,values:List<Pair<String,String>>,current:String,onChange:(String)->Unit){
-    Eyebrow(label,Modifier.padding(top=16.dp,bottom=10.dp))
-    Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-        values.forEach{(key,title)->Text(title,Modifier.border(1.dp,if(current==key)Lime else Color(0xFF3C454A)).background(if(current==key)Color(0xFF29352D) else Color.Transparent).clickable{onChange(key)}.padding(horizontal=13.dp,vertical=11.dp),fontFamily=Grotesk,fontSize=12.sp,color=if(current==key)Lime else Soft)}
+    Eyebrow(label,Modifier.padding(top=24.dp,bottom=12.dp))
+    Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(10.dp)){
+        values.forEach{(key,title)->Text(title,Modifier.clip(RoundedCornerShape(24.dp)).background(if(current==key)White else Color(0xFFE9EAE4)).clickable{onChange(key)}.padding(horizontal=18.dp,vertical=14.dp),fontFamily=Grotesk,fontSize=14.sp,color=if(current==key)Ground else Soft)}
     }
 }
 @Composable private fun Field(label:String,value:String,onChange:(String)->Unit){
-    Eyebrow(label,Modifier.padding(top=16.dp,bottom=10.dp))
-    BasicTextField(value,onChange,Modifier.fillMaxWidth().background(Color(0xFF20272B)).padding(14.dp),textStyle=TextStyle(color=White,fontFamily=Grotesk,fontSize=15.sp),cursorBrush=androidx.compose.ui.graphics.SolidColor(Lime))
+    if(label.isNotBlank())Eyebrow(label,Modifier.padding(top=24.dp,bottom=12.dp))
+    BasicTextField(value,onChange,Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color(0xFFE9EAE4)).padding(18.dp),textStyle=TextStyle(color=White,fontFamily=Grotesk,fontSize=16.sp),cursorBrush=androidx.compose.ui.graphics.SolidColor(Lime),decorationBox={inner->Box{if(value.isEmpty())Text(if(label.isBlank())"Search widgets" else label.lowercase().replaceFirstChar{it.titlecase()},color=Soft,fontSize=16.sp,fontFamily=Grotesk);inner()}})
 }
 
 /** The backdrop is preview wallpaper, not part of the rendered widget. */
@@ -231,14 +240,14 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     val bitmap by produceState<Bitmap?>(null,config.json(),data,shape){if(live!=null)value=withContext(Dispatchers.Default){WidgetRenderer(context).render(PreviewSamples.applications(context,PreviewSamples.config(config)),PreviewSamples.data(context,config,live),630,(630/ratio).toInt())}}
     val transparent=config.surface in listOf("transparent","outline","semi","tint","glass")
     Column(modifier){
-        Box(Modifier.fillMaxWidth().aspectRatio(ratio).clipToBounds().background(if(transparent)when(wallpaper){1->Color(0xFFD4CDBE);2->Color(0xFF493C35);else->Color(0xFF34454A)} else Color.Transparent)){
+        Box(Modifier.fillMaxWidth().aspectRatio(ratio).clipToBounds().background(if(transparent)when(wallpaper){1->Color(0xFFD4CDBE);2->Color(0xFF74706B);else->Color(0xFF727975)} else Color.Transparent)){
             if(transparent)Canvas(Modifier.fillMaxSize()){
                 val stroke=Color.White.copy(alpha=.045f)
                 for(i in 0..12)drawLine(stroke,androidx.compose.ui.geometry.Offset(size.width*.17f+i*size.width*.09f,-10f),androidx.compose.ui.geometry.Offset(i*size.width*.09f,size.height+10f),size.width*.035f)
             }
             bitmap?.let{Image(it.asImageBitmap(),"${config.kind.title} actual renderer preview",Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)}
         }
-        if(sampleMusic||samplePhoto||sampleApps)Eyebrow(if(sampleApps)"APP STUDY / CHOOSE YOUR SHORTCUTS" else if(sampleMusic)"ART STUDY / CONNECT A PLAYER FOR YOUR MUSIC" else "NASA PHOTO STUDY / CHOOSE YOUR OWN IMAGES",Modifier.padding(top=8.dp),Soft)
+        if(sampleMusic||samplePhoto||sampleApps)Eyebrow(if(sampleApps)"Choose your apps to make it yours" else if(sampleMusic)"Sample artwork · connect your player" else "Sample photograph · choose your own",Modifier.padding(top=8.dp),Soft)
     }
 }
 
@@ -246,52 +255,38 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     val collection=Collection.valueOf(collectionName)
     var query by rememberSaveable{mutableStateOf("")}
     val widgets=WidgetKind.entries.filter{(query.isNotBlank()||it.collection==collection)&&(query.isBlank()||it.title.contains(query,true)||it.collection.title.contains(query,true))}
-    LazyColumn(contentPadding=PaddingValues(bottom=36.dp)){
+    LazyColumn(contentPadding=PaddingValues(bottom=48.dp)){
         item{
-            Column(Modifier.padding(22.dp)){
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Eyebrow("YOUR HOMESCREEN, COMPOSED.");Text("$installed IN PLACE ↗",color=Lime,fontFamily=Mono,fontSize=9.sp,modifier=Modifier.clickable(onClick=onInstalled))}
-                Spacer(Modifier.height(24.dp))
-                Row(verticalAlignment=Alignment.Bottom){
-                    BoxWithConstraints(Modifier.weight(1f)){
-                        val context=LocalContext.current
-                        val widthPerSp=remember{android.graphics.Paint().apply{typeface=LabType.face(context,"condensed",650);textSize=100f}.measureText("COLLECTION")/100f}
-                        val headingSize=(maxWidth.value/widthPerSp/LocalDensity.current.fontScale*.94f).toInt().coerceAtMost(67)
-                        Heading("THE\nCOLLECTION",headingSize)
-                    }
-                    Text("50",Modifier.padding(start=6.dp),fontFamily=Serif,fontSize=70.sp,color=Lime,textAlign=androidx.compose.ui.text.style.TextAlign.End)
+            Column(Modifier.padding(horizontal=26.dp).padding(top=24.dp,bottom=28.dp)){
+                Heading("Make space.",36)
+                Text("A quieter home screen, made yours.",fontFamily=Grotesk,fontSize=16.sp,lineHeight=24.sp,color=Soft,modifier=Modifier.padding(top=12.dp))
+                Row(Modifier.fillMaxWidth().padding(top=28.dp,bottom=32.dp).clickable(onClick=onInstalled),verticalAlignment=Alignment.CenterVertically){
+                    Text("Your widgets",fontFamily=Grotesk,fontSize=15.sp,color=White,modifier=Modifier.weight(1f))
+                    Text(if(installed==0)"None added yet" else "$installed on your home screen",fontFamily=Grotesk,fontSize=14.sp,color=Soft)
+                    Text("  →",color=White,fontSize=18.sp)
                 }
-                Spacer(Modifier.height(16.dp));Text("Time. Sound. Speed. Your point of view.",fontFamily=Serif,fontSize=19.sp,color=Soft)
+                Field("",query){query=it}
                 Spacer(Modifier.height(28.dp))
-                Eyebrow("STUDY 034 / TIME, WITHOUT A FRAME",color=Lime)
-                Spacer(Modifier.height(12.dp))
-                Preview(WidgetConfig(WidgetKind.SERIF),data,Modifier.clickable{onKind(WidgetKind.SERIF)})
-                Row(Modifier.fillMaxWidth().padding(top=11.dp),horizontalArrangement=Arrangement.SpaceBetween){Text("Maison",fontFamily=Serif,fontSize=22.sp);Eyebrow("TRANSPARENT ↗",Modifier.padding(top=9.dp))}
-                Rule()
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Eyebrow("SIX COLLECTIONS / ONE PERSONAL STUDIO");Text("↗",color=Lime)}
-                Spacer(Modifier.height(14.dp))
-                Collection.entries.chunked(2).forEach{pair->Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(14.dp)){pair.forEach{col->
-                    Column(Modifier.weight(1f).clickable{onCollection(col);query=""}.padding(vertical=11.dp)){
-                        Row{Text(col.title,fontSize=13.sp,color=if(col==collection)Lime else White,fontFamily=Grotesk,modifier=Modifier.weight(1f));Eyebrow(WidgetKind.entries.count{it.collection==col}.toString().padStart(2,'0'))}
-                        HorizontalDivider(Modifier.padding(top=10.dp),color=if(col==collection)Lime else Color(0xFF343C40))
-                    }
-                }}}
-                Field("FIND A DESIGN",query){query=it}
-                Spacer(Modifier.height(25.dp));Heading(if(query.isBlank())collection.title else "Search / ${widgets.size}",37)
-                Text(if(query.isBlank())collection.subtitle else "From the complete collection",color=Soft,fontFamily=Serif,fontSize=16.sp,modifier=Modifier.padding(top=8.dp,bottom=18.dp))
+                Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(10.dp)){
+                    Collection.entries.forEach{col->Text(col.title,fontFamily=Grotesk,fontSize=14.sp,color=if(col==collection)Ground else White,modifier=Modifier.clip(RoundedCornerShape(26.dp)).background(if(col==collection)White else Color(0xFFE9EAE4)).clickable{onCollection(col);query=""}.padding(horizontal=20.dp,vertical=15.dp))}
+                }
+                Spacer(Modifier.height(34.dp))
+                Heading(if(query.isBlank())collection.title else "Search results",28)
+                Text(if(query.isBlank())collection.subtitle else "${widgets.size} designs",color=Soft,fontFamily=Grotesk,fontSize=15.sp,lineHeight=23.sp,modifier=Modifier.padding(top=10.dp))
             }
         }
         items(widgets.size,key={widgets[it].name}){index->val k=widgets[index]
-            Column(Modifier.padding(horizontal=22.dp).padding(bottom=30.dp).clickable{onKind(k)}){
+            Column(Modifier.padding(horizontal=26.dp).padding(bottom=40.dp).clickable{onKind(k)}){
                 Preview(WidgetConfig(k),data)
-                Row(Modifier.padding(top=12.dp),verticalAlignment=Alignment.Top){
-                    Eyebrow((k.ordinal+1).toString().padStart(3,'0'),Modifier.width(36.dp).padding(top=5.dp),Lime)
-                    Column(Modifier.weight(1f)){Text(k.title,fontFamily=Grotesk,fontSize=17.sp,fontWeight=FontWeight.Medium);Eyebrow(k.size+if(k.transparentDefault)" / TRANSPARENT" else " / ADAPTIVE",Modifier.padding(top=5.dp))}
-                    Text("↗",fontSize=25.sp,color=Soft)
+                Row(Modifier.padding(top=16.dp),verticalAlignment=Alignment.CenterVertically){
+                    Column(Modifier.weight(1f)){Text(k.title,fontFamily=Grotesk,fontSize=18.sp,fontWeight=FontWeight.Medium,color=White);Text(k.size+if(k.transparentDefault)" · Transparent" else " · Resizable",color=Soft,fontSize=13.sp,fontFamily=Grotesk,modifier=Modifier.padding(top=6.dp))}
+                    Text("→",fontSize=22.sp,color=Soft,modifier=Modifier.padding(start=16.dp))
                 }
             }
         }
-        if(recent.isNotEmpty())item{Column(Modifier.padding(22.dp)){Rule();Eyebrow("RECENTLY COMPOSED");recent.forEach{cfg->OptionRow(cfg.kind.collection.title,cfg.kind.title){onRecent(cfg)}}}}
-        item{Column(Modifier.padding(22.dp)){Rule();Text("MAKE ROOM\nFOR YOURSELF.",fontFamily=Display,fontSize=40.sp,lineHeight=37.sp,color=Soft);Eyebrow("WIDGET LAB / EDITION II / 50 OBJECTS",Modifier.padding(top=18.dp))}}
+        if(widgets.isEmpty())item{Text("No widgets found. Try another name.",color=Soft,fontFamily=Grotesk,fontSize=16.sp,modifier=Modifier.padding(26.dp))}
+        if(recent.isNotEmpty())item{Column(Modifier.padding(horizontal=26.dp)){Rule();Heading("Recently used",24);recent.forEach{cfg->OptionRow(cfg.kind.collection.title,cfg.kind.title){onRecent(cfg)}}}}
+        item{Text("50 widgets. Your own little collection.",color=Soft,fontFamily=Grotesk,fontSize=13.sp,modifier=Modifier.padding(horizontal=26.dp,vertical=24.dp))}
     }
 }
 
@@ -302,45 +297,45 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
     var wallpaper by rememberSaveable{mutableIntStateOf(0)}
     val availableApps=remember(picker){if(picker=="apps")LaunchApps.list(context) else emptyList()}
     Column(Modifier.fillMaxSize()){
-        LazyColumn(Modifier.weight(1f).testTag("design-settings"),contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
-            item{Eyebrow("${(cfg.kind.ordinal+1).toString().padStart(3,'0')} / ${cfg.kind.collection.title}",color=Lime);Spacer(Modifier.height(12.dp));Heading(cfg.kind.title,43);Text(cfg.kind.size+" · launcher grid varies",color=Soft,fontSize=11.sp,modifier=Modifier.padding(top=10.dp))}
-            item{Preview(cfg,data,shape=previewShape,wallpaper=wallpaper);if(cfg.surface!="solid")Eyebrow("SHOWN OVER PREVIEW WALLPAPER",Modifier.padding(top=8.dp))}
+        LazyColumn(Modifier.weight(1f).testTag("design-settings"),contentPadding=PaddingValues(26.dp),verticalArrangement=Arrangement.spacedBy(20.dp)){
+            item{Eyebrow("${cfg.kind.collection.title}",color=Lime);Spacer(Modifier.height(12.dp));Heading(cfg.kind.title,43);Text(cfg.kind.size+" · launcher grid varies",color=Soft,fontSize=13.sp,modifier=Modifier.padding(top=10.dp))}
+            item{Preview(cfg,data,shape=previewShape,wallpaper=wallpaper);if(cfg.surface!="solid"&&!cfg.kind.isMusic)Eyebrow("SHOWN OVER PREVIEW WALLPAPER",Modifier.padding(top=8.dp))}
             item{
                 ChoiceRow("PREVIEW PROPORTIONS",listOf("design" to "Default","compact" to "Wide","square" to "Square","tall" to "Tall"),previewShape){previewShape=it}
-                if(cfg.surface!="solid")ChoiceRow("PREVIEW WALLPAPER",listOf("0" to "Slate","1" to "Linen","2" to "Earth"),wallpaper.toString()){wallpaper=it.toInt()}
+                if(cfg.surface!="solid"&&!cfg.kind.isMusic)ChoiceRow("PREVIEW WALLPAPER",listOf("0" to "Slate","1" to "Linen","2" to "Earth"),wallpaper.toString()){wallpaper=it.toInt()}
                 Text(cfg.kind.description,color=Soft,fontSize=13.sp,lineHeight=20.sp,modifier=Modifier.padding(top=18.dp))
             }
-            item{Rule();Eyebrow("COMPOSE YOUR OBJECT",color=Lime)
-                if(!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.ARTWORK,WidgetKind.GLASS)){
+            item{Rule();Eyebrow("Make it yours",color=Lime)
+                if(!cfg.kind.isPhoto&&!cfg.kind.isMusic){
                     ChoiceRow("BACKGROUND",listOf("transparent" to "None","solid" to "Solid","semi" to "Translucent","tint" to "Tint","glass" to "Glass","outline" to "Outline"),cfg.surface){onChange(cfg.copy(surface=it))}
                 }
-                if((!cfg.kind.isPhoto&&cfg.kind!=WidgetKind.ARTWORK)||cfg.kind==WidgetKind.FRAME)ChoiceRow("TYPE & SURFACE COLOR",listOf("dark" to "Light type / dark surface","light" to "Dark type / light surface"),if(cfg.light)"light" else "dark"){onChange(cfg.copy(light=it=="light"))}
-                if(!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.ARTWORK,WidgetKind.CASSETTE,WidgetKind.GLASS,WidgetKind.STRIP,WidgetKind.GRID,WidgetKind.DRIVER,WidgetKind.MINIMAL_DRIVER,WidgetKind.CONSTRUCTOR,WidgetKind.DRIVER_PODIUM,WidgetKind.TEAM_PODIUM,WidgetKind.WEEKEND)||(cfg.surface=="tint"&&cfg.kind!=WidgetKind.GLASS)){
+                if((!cfg.kind.isPhoto&&!cfg.kind.isMusic)||cfg.kind==WidgetKind.FRAME||cfg.kind==WidgetKind.ARTWORK)ChoiceRow("Appearance",listOf("dark" to "Dark","light" to "Light"),if(cfg.light)"light" else "dark"){onChange(cfg.copy(light=it=="light"))}
+                if(!cfg.kind.isPhoto&&!cfg.kind.isMusic&&cfg.kind !in listOf(WidgetKind.ARTWORK,WidgetKind.CASSETTE,WidgetKind.GLASS,WidgetKind.STRIP,WidgetKind.GRID,WidgetKind.DRIVER,WidgetKind.MINIMAL_DRIVER,WidgetKind.CONSTRUCTOR,WidgetKind.DRIVER_PODIUM,WidgetKind.TEAM_PODIUM,WidgetKind.WEEKEND)||(cfg.surface=="tint"&&!cfg.kind.isMusic)){
                     Eyebrow("ACCENT",Modifier.padding(top=18.dp,bottom=12.dp))
                     Row(horizontalArrangement=Arrangement.spacedBy(14.dp),modifier=Modifier.horizontalScroll(rememberScrollState())){
                         listOf("#C3D8B0","#F1E5CA","#5AC7B5","#E56152","#E6A95C","#96B2D0","#F4F4EF").forEach{hex->Box(Modifier.size(29.dp).background(Color(android.graphics.Color.parseColor(hex)),CircleShape).border(if(cfg.accent==hex)3.dp else 0.dp,White,CircleShape).clickable{onChange(cfg.copy(accent=hex,accentText=cfg.kind.isClock||cfg.kind.hasAgenda||cfg.kind.hasLabel||cfg.accentText))})}
                     }
                 }
-                if(!cfg.kind.isPhoto&&cfg.kind!=WidgetKind.ANALOG)ChoiceRow("TYPOGRAPHY",listOf("design" to "Original","sans" to "Swiss","condensed" to "Condensed","serif" to "Serif","technical" to "Technical","mono" to "Mono","dots" to "Dots"),cfg.typography){onChange(cfg.copy(typography=it))}
+                if(!cfg.kind.isPhoto&&!cfg.kind.isMusic&&cfg.kind!=WidgetKind.ANALOG)ChoiceRow("TYPOGRAPHY",listOf("design" to "Original","sans" to "Swiss","condensed" to "Condensed","serif" to "Serif","technical" to "Technical","mono" to "Mono","dots" to "Dots"),cfg.typography){onChange(cfg.copy(typography=it))}
                 if((cfg.kind.isClock||cfg.kind.hasAgenda||cfg.kind.hasLabel)&&cfg.kind!=WidgetKind.ANALOG)ChoiceRow("PRIMARY TYPE COLOR",listOf("default" to "Theme","accent" to "Accent"),if(cfg.accentText)"accent" else "default"){onChange(cfg.copy(accentText=it=="accent"))}
                 if(cfg.kind.isClock&&cfg.kind!=WidgetKind.ANALOG){
                     ChoiceRow("ALIGNMENT",listOf("design" to "Original","start" to "Left","center" to "Center","end" to "Right"),cfg.alignment){onChange(cfg.copy(alignment=it))}
                     ChoiceRow("DATE",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showDate)"yes" else "no"){onChange(cfg.copy(showDate=it=="yes"))}
                     if(cfg.showDate)ChoiceRow("WEEKDAY",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showWeekday)"yes" else "no"){onChange(cfg.copy(showWeekday=it=="yes"))}
                 }
-                if(cfg.surface!="transparent"&&!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.BRUTALIST,WidgetKind.BRUTAL_CLOCK))ChoiceRow("CORNERS",listOf("0" to "Square","12" to "Soft","24" to "Rounded","40" to "Pill"),cfg.corners.toString()){onChange(cfg.copy(corners=it.toInt()))}
+                if(cfg.surface!="transparent"&&!cfg.kind.isPhoto&&cfg.kind !in listOf(WidgetKind.VINYL,WidgetKind.CASSETTE,WidgetKind.BRUTAL_CLOCK))ChoiceRow("CORNERS",listOf("0" to "Square","12" to "Soft","24" to "Rounded","40" to "Pill"),cfg.corners.toString()){onChange(cfg.copy(corners=it.toInt()))}
             }
             if(cfg.kind.hasPortrait){item{
                 Rule()
                 val entries=if(cfg.kind==WidgetKind.CONSTRUCTOR)data?.racing?.teams?.value?.entries?.map{it.id to it.name} else data?.racing?.drivers?.value?.entries?.map{it.id to it.name}
                 OptionRow(if(cfg.kind==WidgetKind.CONSTRUCTOR)"CONSTRUCTOR" else "DRIVER",entries?.find{it.first==cfg.selection}?.second ?: "First in cached standings"){picker="competitor"}
                 Action(if(cfg.image.isBlank())"Add your ${if(cfg.kind==WidgetKind.CONSTRUCTOR)"car artwork" else "portrait"}  +" else "Replace personal artwork",onArtwork,enabled=!busy)
-                Text("Use an image you have permission to use. The included Hamilton photo is a credited 2021 archive, independent of current standings.",fontSize=11.sp,color=Soft,lineHeight=17.sp)
+                Text("Use an image you have permission to use. The included Hamilton photo is a credited 2021 archive, independent of current standings.",fontSize=13.sp,color=Soft,lineHeight=17.sp)
             }}
             if(cfg.kind.isPhoto){item{
                 Rule();Eyebrow("YOUR PHOTOGRAPHS")
                 Spacer(Modifier.height(12.dp));Action(if(cfg.kind==WidgetKind.FILMSTRIP)"Choose up to 4 photographs  +" else if(cfg.kind==WidgetKind.COLLAGE)"Choose 3 photographs  +" else "Choose photograph  +",onArtwork,enabled=!busy)
-                Text("Android's photo picker grants access only to your selection. Optimized copies remain in private app storage after restart.",color=Soft,fontSize=11.sp,lineHeight=18.sp,modifier=Modifier.padding(top=10.dp))
+                Text("Android's photo picker grants access only to your selection. Optimized copies remain in private app storage after restart.",color=Soft,fontSize=13.sp,lineHeight=18.sp,modifier=Modifier.padding(top=10.dp))
                 if(cfg.photos.isNotEmpty())OptionRow("SELECTED IMAGES","${cfg.photos.size} · tap to clear"){onChange(cfg.copy(image="",images=emptyList()))}
                 if(cfg.kind in listOf(WidgetKind.FRAME,WidgetKind.POLAROID))Field("CAPTION",cfg.caption){onChange(cfg.copy(caption=it.take(120)))}
                 if(cfg.kind in listOf(WidgetKind.PHOTO,WidgetKind.FRAME))ChoiceRow("FRAME CORNERS",listOf("0" to "Square","12" to "Soft","24" to "Rounded","40" to "Round"),cfg.corners.toString()){onChange(cfg.copy(corners=it.toInt()))}
@@ -348,35 +343,35 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
             if(cfg.kind.hasPortrait||cfg.kind.isPhoto){item{
                 ChoiceRow("IMAGE FOCAL ALIGNMENT",listOf("center" to "Center","top" to "Top","bottom" to "Bottom","left" to "Left","right" to "Right"),cfg.crop){onChange(cfg.copy(crop=it))}
             }}
-            if(cfg.kind in listOf(WidgetKind.DRIVER_STANDINGS,WidgetKind.CONSTRUCTOR_STANDINGS)){item{ChoiceRow("MAXIMUM STANDINGS ROWS",listOf("3" to "3","5" to "5","10" to "10"),cfg.rows.toString()){onChange(cfg.copy(rows=it.toInt()))};Text("Visible rows adapt to height; small widgets keep readable text.",color=Soft,fontSize=11.sp)}}
+            if(cfg.kind in listOf(WidgetKind.DRIVER_STANDINGS,WidgetKind.CONSTRUCTOR_STANDINGS)){item{ChoiceRow("MAXIMUM STANDINGS ROWS",listOf("3" to "3","5" to "5","10" to "10"),cfg.rows.toString()){onChange(cfg.copy(rows=it.toInt()))};Text("Visible rows adapt to height; small widgets keep readable text.",color=Soft,fontSize=13.sp)}}
             if(cfg.kind.isClock||cfg.kind.hasAgenda||cfg.kind in listOf(WidgetKind.WEEKEND,WidgetKind.WEEKEND_EDITORIAL,WidgetKind.COUNTDOWN)){item{
                 Rule()
                 if(cfg.kind!=WidgetKind.ANALOG||android.os.Build.VERSION.SDK_INT>=31)OptionRow("TIMEZONE",if(cfg.timezone=="device")"Device timezone" else cfg.timezone){picker="timezone"}
-                else Text("On Android 10–11 the native analog clock uses the device timezone.",color=Soft,fontSize=12.sp)
+                else Text("On Android 10–11 the native analog clock uses the device timezone.",color=Soft,fontSize=14.sp)
                 if(cfg.kind==WidgetKind.DUAL)OptionRow("SECOND TIMEZONE",cfg.secondaryZone){picker="secondZone"}
                 if(cfg.kind!=WidgetKind.ANALOG&&cfg.kind!=WidgetKind.DATE)ChoiceRow("TIME FORMAT",listOf("24" to "24 hour","12" to "12 hour"),if(cfg.hour24)"24" else "12"){onChange(cfg.copy(hour24=it=="24"))}
             }}
             if(cfg.kind.isMusic){item{
                 Rule();Eyebrow("MEDIA CONNECTION",color=Lime)
                 Text(if(data?.mediaAccess==true)"Media access enabled" else "Connect your listening room",fontFamily=Serif,fontSize=23.sp,modifier=Modifier.padding(vertical=12.dp))
-                Text("Notification-listener access discovers active media sessions. Widget Lab does not store notification messages. Start playback in your music app to expose artwork and supported controls.",color=Soft,fontSize=12.sp,lineHeight=19.sp)
+                Text("Notification-listener access discovers active media sessions. Widget Lab does not store notification messages. Start playback in your music app to expose artwork and supported controls.",color=Soft,fontSize=14.sp,lineHeight=19.sp)
                 Spacer(Modifier.height(12.dp));Action(if(data?.mediaAccess==true)"Review Android media access  ↗" else "Enable media access  ↗",onMedia)
-                OptionRow("PLAYER",if(cfg.selection.isBlank())"Automatic / playing session first" else appLabel(context,cfg.selection)){picker="media"}
+                OptionRow("PLAYER",if(cfg.selection.isBlank())"Automatic" else appLabel(context,cfg.selection)){picker="media"}
             }}
-            if(cfg.kind.hasAgenda){item{Rule();Eyebrow("PRIVATE DEVICE CALENDAR");Text("Upcoming events remain on your device. Granting access is optional; permission-denied and empty-calendar states are explicit.",color=Soft,fontSize=12.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp));Action(if(data?.agenda?.permitted==true)"Calendar access granted" else "Allow read-only calendar access",onCalendar)}}
+            if(cfg.kind.hasAgenda){item{Rule();Eyebrow("PRIVATE DEVICE CALENDAR");Text("Upcoming events remain on your device. Granting access is optional; permission-denied and empty-calendar states are explicit.",color=Soft,fontSize=14.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp));Action(if(data?.agenda?.permitted==true)"Calendar access granted" else "Allow read-only calendar access",onCalendar)}}
             if(cfg.kind.hasLabel){item{Rule();Field("SECTION NAME",cfg.label){onChange(cfg.copy(label=it.take(60)))};if(cfg.kind!=WidgetKind.LAUNCHER)Field("SUPPORTING LABEL",cfg.caption){onChange(cfg.copy(caption=it.take(120)))}}}
-            if(cfg.kind.hasApps){item{Rule();OptionRow("APPLICATION SHORTCUTS","${cfg.apps.size} selected / choose up to 6"){picker="apps"}
+            if(cfg.kind.hasApps){item{Rule();OptionRow("APPLICATION SHORTCUTS","${cfg.apps.size} selected · choose up to 6"){picker="apps"}
                 ChoiceRow("ICONS",listOf("original" to "Original","mono" to "Monochrome","letters" to "Initials"),cfg.iconStyle){onChange(cfg.copy(iconStyle=it))}
                 ChoiceRow("APP NAMES",listOf("yes" to "Visible","no" to "Hidden"),if(cfg.showLabels)"yes" else "no"){onChange(cfg.copy(showLabels=it=="yes"))}
-                Text("These are widget shortcuts, not native launcher folders. Missing or uninstalled applications open configuration.",color=Soft,fontSize=11.sp,lineHeight=18.sp,modifier=Modifier.padding(top=12.dp))}}
+                Text("These are widget shortcuts, not native launcher folders. Missing or uninstalled applications open configuration.",color=Soft,fontSize=13.sp,lineHeight=18.sp,modifier=Modifier.padding(top=12.dp))}}
             if(cfg.kind.isRacing){item{
                 Rule();Eyebrow("RACING SOURCE",color=Lime)
-                Text("Jolpica / public Formula 1 snapshots. Each feed has independent timestamps and offline caching. Historical samples are labeled; no statistics are fabricated.",color=Soft,fontSize=12.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp))
-                listOf("Drivers" to data?.racing?.drivers,"Constructors" to data?.racing?.teams,"Schedule" to data?.racing?.schedule,"Results" to data?.racing?.result).forEach{(name,s)->Text("$name · ${if(s?.sample!=false)"SAMPLE / 2024" else s.refreshed?.atZone(cfg.zone())?.format(DateTimeFormatter.ofPattern("d MMM HH:mm z"))}${if(s?.error!=null)" / OFFLINE" else ""}",color=Soft,fontFamily=Mono,fontSize=9.sp,modifier=Modifier.padding(bottom=7.dp))}
+                Text("Public Formula 1 snapshots from Jolpica. Each feed has independent timestamps and offline caching. Historical samples are labeled; no statistics are fabricated.",color=Soft,fontSize=14.sp,lineHeight=19.sp,modifier=Modifier.padding(vertical=12.dp))
+                listOf("Drivers" to data?.racing?.drivers,"Constructors" to data?.racing?.teams,"Schedule" to data?.racing?.schedule,"Results" to data?.racing?.result).forEach{(name,s)->Text("$name · ${if(s?.sample!=false)"Sample · 2024" else s.refreshed?.atZone(cfg.zone())?.format(DateTimeFormatter.ofPattern("d MMM HH:mm z"))}${if(s?.error!=null)" · Offline" else ""}",color=Soft,fontFamily=Mono,fontSize=12.sp,modifier=Modifier.padding(bottom=7.dp))}
                 Action(if(busy)"Refreshing…" else "Refresh racing data  ↻",onRefresh,enabled=!busy)
             }}
             item{Rule();Eyebrow("HOW IT WORKS");Text(when{
-                cfg.kind.isClock->"Native Android TextClock / AnalogClock keeps time independently of app refreshes. No aggressive polling or artificial seconds."
+                cfg.kind.isClock->"Native Android TextClock or AnalogClock keeps time independently of app refreshes. No aggressive polling or artificial seconds."
                 cfg.kind.isMusic->"Session callbacks update metadata and playback. Buttons act only on supported controls. No invented playback progress."
                 cfg.kind.isPhoto->"Your chosen photos are copied to private app storage and rendered with focal cropping. Tap the widget to change its photographs."
                 cfg.kind.hasApps->"Tap an icon to open its installed application. Selections are stored independently for each widget."
@@ -385,16 +380,16 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
                 cfg.kind.hasAgenda->"Native time/date with a local read-only calendar query. Agenda data refreshes approximately every 30 minutes."
                 cfg.kind.hasLabel->"A real transparent Android widget. Tap to edit this label."
                 else->"Cached racing snapshots refresh approximately every six hours. Countdown values update periodically. Session times use IANA timezones and daylight-saving rules."
-            },color=Soft,fontSize=12.sp,lineHeight=19.sp,modifier=Modifier.padding(top=12.dp,bottom=12.dp));Text("Long-press the home-screen widget to resize. Layouts change with the available space; your launcher controls the exact grid.",color=Soft,fontSize=11.sp,lineHeight=17.sp)}
+            },color=Soft,fontSize=14.sp,lineHeight=19.sp,modifier=Modifier.padding(top=12.dp,bottom=12.dp));Text("Long-press the home-screen widget to resize. Layouts change with the available space; your launcher controls the exact grid.",color=Soft,fontSize=13.sp,lineHeight=17.sp)}
         }
-        Box(Modifier.background(Ground).padding(horizontal=22.dp,vertical=12.dp)){Action(if(busy)"Working…" else if(id>=0)"Apply to this widget  ↗" else "Add to Home Screen  +",onSave,primary=true,enabled=!busy)}
+        Box(Modifier.background(Ground).padding(horizontal=22.dp,vertical=12.dp)){Action(if(busy)"Working…" else if(id>=0)"Apply to widget" else "Add to home screen",onSave,primary=true,enabled=!busy)}
     }
     if(picker!=null){
         var filter by remember{mutableStateOf("")}
         val choices=when(picker){
-            "competitor"->listOf("" to "First in cached standings")+(if(cfg.kind==WidgetKind.CONSTRUCTOR)data?.racing?.teams?.value?.entries?.map{it.id to "${it.name} / ${data.racing.teams.value.season}"} else data?.racing?.drivers?.value?.entries?.map{it.id to "${it.name} / ${data.racing.drivers.value.season}"}).orEmpty()
+            "competitor"->listOf("" to "First in cached standings")+(if(cfg.kind==WidgetKind.CONSTRUCTOR)data?.racing?.teams?.value?.entries?.map{it.id to "${it.name} · ${data.racing.teams.value.season}"} else data?.racing?.drivers?.value?.entries?.map{it.id to "${it.name} · ${data.racing.drivers.value.season}"}).orEmpty()
             "media"->listOf("" to "Automatic")+MediaHub.apps().map{it to appLabel(context,it)}
-            "apps"->cfg.apps.filter{component->availableApps.none{it.component==component}}.map{it to "Unavailable / ${ComponentName.unflattenFromString(it)?.packageName ?: "remove selection"}"}+availableApps.map{it.component to it.label}
+            "apps"->cfg.apps.filter{component->availableApps.none{it.component==component}}.map{it to "Unavailable · ${ComponentName.unflattenFromString(it)?.packageName ?: "remove selection"}"}+availableApps.map{it.component to it.label}
             else->listOf("device" to "Device timezone")+java.time.ZoneId.getAvailableZoneIds().sorted().map{it to it.replace('_',' ')}
         }.filter{it.second.contains(filter,true)}
         AlertDialog(onDismissRequest={picker=null},title={Text(if(picker=="apps")"Choose applications" else "Select ${picker}",fontFamily=Serif)},text={Column{
@@ -408,20 +403,20 @@ private suspend fun importArtwork(context: android.content.Context,uri: Uri): St
 }
 private fun appLabel(context:android.content.Context,pkg:String)=runCatching{context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(pkg,0)).toString()}.getOrDefault(pkg)
 @Composable private fun OptionRow(title:String,value:String,onClick:()->Unit){Column(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(vertical=14.dp)){Eyebrow(title);Row(Modifier.padding(top=7.dp)){Text(value,fontFamily=Grotesk,fontSize=14.sp,modifier=Modifier.weight(1f));Text("↗",color=Lime)}}}
-@Composable private fun Installed(installed:List<Pair<Int,WidgetKind>>,store:ConfigStore,data:RenderData?,onEdit:(Int,WidgetKind)->Unit){LazyColumn(contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.spacedBy(22.dp)){
-    item{Eyebrow("YOUR HOME SCREEN",color=Lime);Spacer(Modifier.height(16.dp));Heading("IN PLACE.",62);Text("${installed.size} objects / independent settings",color=Soft,fontFamily=Serif,fontSize=18.sp,modifier=Modifier.padding(top=14.dp))}
+@Composable private fun Installed(installed:List<Pair<Int,WidgetKind>>,store:ConfigStore,data:RenderData?,onEdit:(Int,WidgetKind)->Unit){LazyColumn(contentPadding=PaddingValues(26.dp),verticalArrangement=Arrangement.spacedBy(22.dp)){
+    item{Eyebrow("YOUR HOME SCREEN",color=Lime);Spacer(Modifier.height(16.dp));Heading("Your widgets",62);Text("${installed.size} widgets · independent settings",color=Soft,fontFamily=Serif,fontSize=18.sp,modifier=Modifier.padding(top=14.dp))}
     if(installed.isEmpty())item{Text("Find your first object in the collection. Add it here, then arrange it on your home screen.",color=Soft,fontSize=14.sp,lineHeight=21.sp,modifier=Modifier.padding(vertical=30.dp))}
     items(installed.size,key={installed[it].first}){i->val(id,k)=installed[i];Column(Modifier.clickable{onEdit(id,k)}){Preview(store.read(id,k).copy(kind=k),data);OptionRow("INSTANCE #$id",k.title){onEdit(id,k)}}}
 }}
 @Composable private fun SettingsScreen(data:RenderData?,automatic:Boolean,busy:Boolean,onAuto:(Boolean)->Unit,onRefresh:()->Unit,onMedia:()->Unit,onRedraw:()->Unit,onSystem:()->Unit){
     val context=LocalContext.current;var licenses by remember{mutableStateOf(false)}
     val notices=remember{context.assets.list("notices").orEmpty().filter{it.endsWith(".txt")}.joinToString("\n\n"){name->name+"\n"+context.assets.open("notices/$name").bufferedReader().use{it.readText()}}}
-    LazyColumn(contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
-        item{Eyebrow("EDITION II / ${dev.widgetlab.BuildConfig.VERSION_NAME}",color=Lime);Spacer(Modifier.height(15.dp));Heading("THE STUDIO.",59);Text("50 objects. No account. No ads. No analytics.",fontFamily=Serif,color=Soft,fontSize=20.sp,modifier=Modifier.padding(top=18.dp))}
-        item{Rule();Eyebrow("RACING DATA");OptionRow("AUTOMATIC SYNC",if(automatic)"Every six hours / enabled" else "Off"){onAuto(!automatic)};Action(if(busy)"Refreshing…" else "Refresh racing feeds",onRefresh,enabled=!busy)}
-        item{listOf("Drivers" to data?.racing?.drivers,"Constructors" to data?.racing?.teams,"Schedule" to data?.racing?.schedule,"Results" to data?.racing?.result).forEach{(name,s)->Text("$name / ${if(s?.sample!=false)"SAMPLE · 2024" else s.refreshed?.atZone(java.time.ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm z"))}",color=Soft,fontSize=11.sp);s?.error?.let{Text(it,color=Color(0xFFE5A494),fontSize=11.sp)}}}
-        item{Rule();Eyebrow("PERMISSIONS & DIAGNOSTICS");OptionRow("MEDIA ACCESS",if(data?.mediaAccess==true)"Enabled" else "Connect a player",onMedia);Text("Calendar: ${if(data?.agenda?.permitted==true)"granted" else "off / enable from Date or Today"}",color=Soft,fontSize=12.sp);Text("Battery: ${data?.battery?.percent ?: "—"}% / ${if(data?.battery?.charging==true)"charging" else "on battery"}",color=Soft,fontSize=12.sp,modifier=Modifier.padding(top=8.dp));Text("DND: ${data?.focus?.title ?: "Unknown"}",color=Soft,fontSize=12.sp,modifier=Modifier.padding(top=8.dp));Spacer(Modifier.height(16.dp));Action("Refresh installed widgets",onRedraw);OptionRow("ANDROID APP SETTINGS","Permissions & power management",onSystem);Text("On Vivo, allow background activity and autostart if media or periodic data updates stop. Time displays use native Android clocks. Physical Vivo launcher behavior still needs device testing.",color=Soft,fontSize=12.sp,lineHeight=19.sp)}
-        item{Rule();Eyebrow("LOCAL BY DESIGN");Text("Photos and widget profiles stay in app-private storage. Calendar information is never uploaded. Media metadata stays in memory. Android backup is disabled. Uninstalling removes your local settings. Only public racing feeds use the network.",color=Soft,fontSize=12.sp,lineHeight=19.sp);OptionRow("CREDITS & LICENSES","Type, imagery and data"){licenses=true};Text("A home screen,\nwith a point of view.",fontFamily=Serif,fontSize=30.sp,lineHeight=35.sp,modifier=Modifier.padding(vertical=22.dp))}
+    LazyColumn(contentPadding=PaddingValues(26.dp),verticalArrangement=Arrangement.spacedBy(20.dp)){
+        item{Eyebrow("Version ${dev.widgetlab.BuildConfig.VERSION_NAME}",color=Lime);Spacer(Modifier.height(15.dp));Heading("Settings",59);Text("A personal collection. No accounts, ads or analytics.",fontFamily=Serif,color=Soft,fontSize=20.sp,modifier=Modifier.padding(top=18.dp))}
+        item{Rule();Eyebrow("RACING DATA");OptionRow("AUTOMATIC SYNC",if(automatic)"Every six hours" else "Off"){onAuto(!automatic)};Action(if(busy)"Refreshing…" else "Refresh racing feeds",onRefresh,enabled=!busy)}
+        item{listOf("Drivers" to data?.racing?.drivers,"Constructors" to data?.racing?.teams,"Schedule" to data?.racing?.schedule,"Results" to data?.racing?.result).forEach{(name,s)->Text("$name · ${if(s?.sample!=false)"SAMPLE · 2024" else s.refreshed?.atZone(java.time.ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm z"))}",color=Soft,fontSize=13.sp);s?.error?.let{Text(it,color=Color(0xFFE5A494),fontSize=13.sp)}}}
+        item{Rule();Eyebrow("PERMISSIONS & DIAGNOSTICS");OptionRow("MEDIA ACCESS",if(data?.mediaAccess==true)"Enabled" else "Connect a player",onMedia);Text("Calendar: ${if(data?.agenda?.permitted==true)"granted" else "off · enable from Date or Today"}",color=Soft,fontSize=14.sp);Text("Battery: ${data?.battery?.percent ?: "—"}% · ${if(data?.battery?.charging==true)"charging" else "on battery"}",color=Soft,fontSize=14.sp,modifier=Modifier.padding(top=8.dp));Text("DND: ${data?.focus?.title ?: "Unknown"}",color=Soft,fontSize=14.sp,modifier=Modifier.padding(top=8.dp));Spacer(Modifier.height(16.dp));Action("Refresh installed widgets",onRedraw);OptionRow("ANDROID APP SETTINGS","Permissions & power management",onSystem);Text(WidgetDiagnostics.summary(context),color=Soft,fontSize=13.sp,lineHeight=20.sp,modifier=Modifier.padding(vertical=16.dp));Text("On Vivo, allow background activity and autostart if media or periodic data updates stop. Time displays use native Android clocks. Physical Vivo launcher behavior still needs device testing.",color=Soft,fontSize=14.sp,lineHeight=19.sp)}
+        item{Rule();Eyebrow("LOCAL BY DESIGN");Text("Photos and widget profiles stay in app-private storage. Calendar information is never uploaded. Media metadata stays in memory. Android backup is disabled. Uninstalling removes your local settings. Only public racing feeds use the network.",color=Soft,fontSize=14.sp,lineHeight=19.sp);OptionRow("CREDITS & LICENSES","Type, imagery and data"){licenses=true};Text("A little space for you.",fontFamily=Serif,fontSize=30.sp,lineHeight=35.sp,modifier=Modifier.padding(vertical=22.dp))}
     }
-    if(licenses)AlertDialog(onDismissRequest={licenses=false},title={Text("Credits & licenses")},text={Text(notices,Modifier.verticalScroll(rememberScrollState()),fontSize=10.sp,lineHeight=16.sp)},confirmButton={TextButton(onClick={licenses=false}){Text("CLOSE")}})
+    if(licenses)AlertDialog(onDismissRequest={licenses=false},title={Text("Credits & licenses")},text={Text(notices,Modifier.verticalScroll(rememberScrollState()),fontSize=10.sp,lineHeight=16.sp)},confirmButton={TextButton(onClick={licenses=false}){Text("Close")}})
 }

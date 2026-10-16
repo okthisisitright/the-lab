@@ -9,6 +9,10 @@ on:
         description: Artifact containing device evidence
         default: Android-15-device-test-results
         required: true
+      release_tag:
+        description: Evidence release tag
+        default: widget-lab-0.3.0-qa
+        required: true
 permissions:
   contents: write
   actions: read
@@ -22,15 +26,17 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RUN_ID: ${{ inputs.run_id }}
           ARTIFACT_NAME: ${{ inputs.artifact_name }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^widget-lab-[a-zA-Z0-9.-]+$ ]]
           gh run download "$RUN_ID" --name "$ARTIFACT_NAME" --dir evidence
           find evidence -name '*.png' -exec cp '{}' . \;
           zip -qr Studio-evidence.zip evidence
-          if ! gh release view widget-lab-0.2.0-qa >/dev/null 2>&1; then
-            gh release create widget-lab-0.2.0-qa --title 'Edition II — Android emulator evidence' --notes 'Automated emulator screenshots and test reports. Development verification; no APK in this release. Physical Vivo acceptance remains separate.' --prerelease
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --title 'Widget Lab — Android verification evidence' --notes 'Automated emulator screenshots and test reports. Development verification; no APK in this release. Physical Vivo acceptance remains separate.' --prerelease
           fi
-          gh release upload widget-lab-0.2.0-qa Studio-evidence.zip --clobber
+          gh release upload "$RELEASE_TAG" Studio-evidence.zip --clobber
           for image in ./*.png; do
-            if [[ -f "$image" ]]; then gh release upload widget-lab-0.2.0-qa "$image" --clobber; fi
+            if [[ -f "$image" ]]; then gh release upload "$RELEASE_TAG" "$image" --clobber; fi
           done

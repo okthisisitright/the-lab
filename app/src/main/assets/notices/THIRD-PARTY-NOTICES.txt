@@ -40,3 +40,5 @@ NASA Apollo 15, AS15-87-11849, “View of Mount Hadley as photographed by Apollo
 ## Offline circuit diagrams
 
 Circuit coordinates: Formula 1 circuits GeoJSON, Tomislav Bacinger, https://github.com/bacinger/f1-circuits , pinned commit 394d8fbe70ef2c0b0c8d23ff7bee61fa09606055. MIT license; full copyright/permission notice is bundled as CIRCUITS-MIT.txt. Coordinates are locally projected and rotated for illustrative outlines. These are unofficial diagrams, not official surveys, navigation maps or live telemetry. Unknown circuit IDs fall back to their real circuit names; no substitute outline is invented.
+
+Google Sans, copyright 2025 The Google Sans Project Authors (https://github.com/googlefonts/googlesans), is bundled under SIL OFL 1.1. Full license: app/src/main/assets/notices/GOOGLE-SANS-OFL.txt. Source: https://github.com/google/fonts/tree/main/ofl/googlesans . This build subsets the original variable font to Latin, Cyrillic and common punctuation/symbols for application UI size; no reserved font names are declared in its license header. The widget collection retains its other credited display faces.

@@ -8,7 +8,7 @@ import dev.widgetlab.core.*
 import kotlin.math.*
 
 object LabType {
-    fun resource(face: String)=when(face){"condensed"->R.font.condensed;"serif"->R.font.serif;"technical"->R.font.technical;"mono"->R.font.mono;"dots"->R.font.dots;else->R.font.inter}
+    fun resource(face: String)=when(face){"google"->R.font.google_sans;"condensed"->R.font.condensed;"serif"->R.font.serif;"technical"->R.font.technical;"mono"->R.font.mono;"dots"->R.font.dots;else->R.font.inter}
     private val cache=mutableMapOf<String,Typeface>()
     @Synchronized fun face(context: Context,name: String,weight: Int=400): Typeface = cache.getOrPut("$name:$weight") {Typeface.create(context.resources.getFont(resource(name)),weight,false)}
 }

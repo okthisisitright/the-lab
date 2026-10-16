@@ -30,6 +30,11 @@ class DeviceIntegrationTest {
     private fun shell(command:String)=instrumentation.uiAutomation.executeShellCommand(command).use { android.os.ParcelFileDescriptor.AutoCloseInputStream(it).readBytes().toString(Charsets.UTF_8) }
     private fun until(predicate:()->Boolean) {val end=System.currentTimeMillis()+10_000;while(!predicate() && System.currentTimeMillis()<end)Thread.sleep(50);assertTrue(predicate())}
     @Test fun sessionSelectionCallbacksAndTransportControlsUseThePlayingToken() {
+        shell("appwidget grantbind --package ${context.packageName} --user 0")
+        val controlsHost=AppWidgetHost(context,9103)
+        val controlId=controlsHost.allocateAppWidgetId()
+        assertTrue(AppWidgetManager.getInstance(context).bindAppWidgetIdIfAllowed(controlId,ProviderCatalog.component(context,WidgetKind.COMPACT)))
+        ConfigStore(context).save(controlId,WidgetConfig(WidgetKind.COMPACT))
         val component="${context.packageName}/${MediaListener::class.java.name}"
         shell("cmd notification allow_listener $component")
         until{MediaHub.permitted(context)}
@@ -51,7 +56,13 @@ class DeviceIntegrationTest {
         try {
             until{MediaHub.info().title=="Playing probe"}
             assertTrue(MediaHub.info().next);assertFalse(MediaHub.info().previous);assertTrue(MediaHub.info().toggle)
-            instrumentation.runOnMainSync{MediaHub.control(context,"next","");MediaHub.control(context,"previous","");MediaHub.control(context,"toggle","")}
+            val renderData=RenderData(RacingRepository(context).snapshot(),MediaHub.info(),DeviceData.battery(context),AgendaData(false,emptyList()),true)
+            instrumentation.runOnMainSync{
+                val controls=WidgetViews.build(context,controlId,WidgetConfig(WidgetKind.COMPACT),renderData,320f,150f).apply(context,android.widget.FrameLayout(context))
+                assertTrue(controls.findViewById<android.view.View>(R.id.next).performClick())
+                assertTrue(controls.findViewById<android.view.View>(R.id.toggle).performClick())
+                MediaHub.control(context,"previous","")
+            }
             assertTrue(next.await(5,TimeUnit.SECONDS));assertTrue(pause.await(5,TimeUnit.SECONDS));assertFalse(wrongSession);assertFalse(unsupported)
             instrumentation.runOnMainSync {second.setMetadata(MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,"Metadata changed").build())}
             until{MediaHub.info().title=="Metadata changed"}
@@ -59,7 +70,7 @@ class DeviceIntegrationTest {
             until{!MediaHub.permitted(context)}
             instrumentation.runOnMainSync{MediaHub.connect(context)}
             assertEquals("Nothing playing",MediaHub.info().title)
-        } finally {instrumentation.runOnMainSync{first.release();second.release()};shell("cmd notification disallow_listener $component")}
+        } finally {instrumentation.runOnMainSync{first.release();second.release()};shell("cmd notification disallow_listener $component");controlsHost.deleteAppWidgetId(controlId);controlsHost.deleteHost();ConfigStore(context).delete(controlId)}
     }
     @Test fun everyProviderBindsUpdatesAndInflatesWithNativeClockAndControlViews()=runBlocking {
         shell("appwidget grantbind --package ${context.packageName} --user 0")

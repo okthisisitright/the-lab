@@ -58,20 +58,37 @@ object WidgetUpdates {
     init { scope.launch { for(context in requests) { delay(180); updateIds(context,null,musicOnly=!fullRequested.getAndSet(false)) } } }
     fun request(context: Context, musicOnly: Boolean = false) { if(!musicOnly)fullRequested.set(true); requests.trySend(context.applicationContext) }
     suspend fun updateAll(context: Context) = updateIds(context,null)
-    suspend fun updateIds(context: Context,ids: Set<Int>?,musicOnly:Boolean=false) = mutex.withLock {
+    suspend fun updateIds(context: Context,ids: Set<Int>?,musicOnly:Boolean=false):Boolean = mutex.withLock {
         val installed=(if(ids==null)ProviderCatalog.installed(context,musicOnly) else ids.mapNotNull{id->ProviderCatalog.kind(context,id)?.let{id to it}})
             .filter{!musicOnly||it.second.isMusic}
-        if(installed.isEmpty()) return@withLock
+        if(installed.isEmpty()) return@withLock false
         val snapshot=RacingRepository(context).snapshot()
         val battery=DeviceData.battery(context)
         val agenda=if(installed.any { it.second.hasAgenda }) DeviceData.agenda(context) else AgendaData(false, emptyList())
+        var successful=true
         installed.forEach { (id, kind) ->
             try {
                 val config=ConfigStore(context).read(id,kind).copy(kind=kind)
                 val media=MediaHub.info(config.selection)
                 val data=RenderData(snapshot,media,battery,agenda,MediaHub.permitted(context),focus=readFocus(context))
                 update(context,id,config,data)
-            } catch (e: Exception) { android.util.Log.w("WidgetLab","Widget $id update failed: ${e.javaClass.simpleName}") }
+                WidgetDiagnostics.success(context,id)
+            } catch (e: Exception) {
+                successful=false
+                WidgetDiagnostics.failure(context,id,e)
+                android.util.Log.e("WidgetLab","Widget $id (${kind.name}) update failed",e)
+                showFailure(context,id)
+            }
+        }
+        successful
+    }
+    private fun showFailure(context:Context,id:Int) {
+        runCatching {
+            val views=RemoteViews(context.packageName,dev.widgetlab.R.layout.widget_unavailable)
+            val edit=Intent(context,dev.widgetlab.ui.WidgetConfigureActivity::class.java)
+                .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id).setData(android.net.Uri.parse("widgetlab://configure/$id"))
+            views.setOnClickPendingIntent(dev.widgetlab.R.id.widget_root,PendingIntent.getActivity(context,id,edit,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            AppWidgetManager.getInstance(context).updateAppWidget(id,views)
         }
     }
     fun update(context: Context,id: Int,cfg: WidgetConfig,data: RenderData) {
@@ -80,13 +97,12 @@ object WidgetUpdates {
         val portrait=android.util.SizeF(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,300).coerceAtLeast(100).toFloat(),options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,cfg.kind.height*300/420).coerceAtLeast(54).toFloat())
         val landscape=android.util.SizeF(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,portrait.width.toInt()).coerceAtLeast(100).toFloat(),options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,portrait.height.toInt()).coerceAtLeast(54).toFloat())
         val density=context.resources.displayMetrics.density.coerceIn(1f,2.5f)
-        val views=if(android.os.Build.VERSION.SDK_INT>=31) {
-            @Suppress("DEPRECATION") val sizes=options.getParcelableArrayList<android.util.SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES)?.distinct()?.filter{it.width>=80 && it.height>=48}?.take(6).orEmpty().ifEmpty{listOf(portrait,landscape).distinct()}
-            val map=sizes.associateWith{size->WidgetViews.build(context,id,cfg,data,size.width,size.height,density,420_000/sizes.size)}
-            RemoteViews(map)
-        }else{
-            RemoteViews(WidgetViews.build(context,id,cfg,data,landscape.width,landscape.height,density,210_000),WidgetViews.build(context,id,cfg,data,portrait.width,portrait.height,density,210_000))
-        }
+        // Use the long-established orientation pair on every Android version. Avoid relying on newer
+        // host size-map selection while diagnosing blank widgets on the user's launcher.
+        // OPTION_APPWIDGET_* and OPTIONS_CHANGED still drive fresh dimension-aware renders.
+        val views=RemoteViews(
+            WidgetViews.build(context,id,cfg,data,landscape.width,landscape.height,density,210_000),
+            WidgetViews.build(context,id,cfg,data,portrait.width,portrait.height,density,210_000))
         manager.updateAppWidget(id,views)
     }
 
@@ -110,6 +126,6 @@ class PinReceiver: BroadcastReceiver() {
         val store=ConfigStore(context)
         if(!store.contains(id)) store.save(id,cfg)
         store.remember(store.read(id,kind))
-        val pending=goAsync();WidgetUpdates.scope.launch {try{WidgetUpdates.updateAll(context.applicationContext)}finally{pending.finish()}}
+        val pending=goAsync();WidgetUpdates.scope.launch {try{WidgetUpdates.updateIds(context.applicationContext,setOf(id))}finally{pending.finish()}}
     }
 }

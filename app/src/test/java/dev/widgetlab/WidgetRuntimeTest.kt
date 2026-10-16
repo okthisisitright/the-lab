@@ -26,6 +26,38 @@ import java.time.Instant
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class WidgetRuntimeTest {
     private val context get()=ApplicationProvider.getApplicationContext<Application>()
+    @Test fun simplifiedNamesArePlainAndStable() {
+        assertEquals(50,WidgetKind.entries.size)
+        WidgetKind.entries.forEach{assertFalse(it.title.contains('/'))}
+        assertEquals("CLOCK",WidgetKind.CLOCK.name)
+        assertEquals("Serif clock",WidgetKind.SERIF.title)
+    }
+    @Test fun newMusicControlsStayInsideActualWidgetBounds() {
+        WidgetKind.entries.filter{it.isMusic}.forEach{kind->
+            for((w,h) in listOf(300f to 96f,180f to 250f,360f to 520f,140f to 180f,300f to 54f)){
+                val plan=MusicDesign.plan(kind,w,h)
+                plan.controls.forEach{control->val b=control.bounds
+                    assertTrue("$kind ${control.action} left",b.x>=0)
+                    assertTrue("$kind ${control.action} top",b.y>=0)
+                    assertTrue("$kind ${control.action} right",b.x+b.w<=w+.1f)
+                    assertTrue("$kind ${control.action} bottom",b.y+b.h<=h+.1f)
+                }
+                if(kind==WidgetKind.ARTWORK&&h>=112&&w>=145)assertTrue(plan.controls.isEmpty())
+            }
+        }
+    }
+    @Test fun ambientArtworkIsCachedWithoutMutatingTheOriginal() {
+        val original=Bitmap.createBitmap(60,60,Bitmap.Config.ARGB_8888)
+        val canvas=Canvas(original);canvas.drawColor(Color.RED)
+        canvas.drawRect(30f,0f,60f,60f,Paint().apply{color=Color.BLUE})
+        val blurred=MusicArtwork.diffuse(original)!!
+        assertSame(blurred,MusicArtwork.diffuse(original))
+        assertFalse(original.isRecycled)
+        assertEquals(Color.RED,original.getPixel(0,0))
+        val center=blurred.getPixel(36,36)
+        assertTrue(Color.red(center)>0&&Color.blue(center)>0)
+        assertNull(MusicArtwork.diffuse(null))
+    }
     @Test fun independentlyConfiguredInstancesAndPinProfilesSurviveStoreRecreation() {
         val a=WidgetConfig(WidgetKind.DRIVER,selection="hamilton",accent="#F04C48")
         val b=WidgetConfig(WidgetKind.DRIVER,selection="leclerc",light=true)
@@ -135,17 +167,20 @@ class WidgetRuntimeTest {
                 File(dir,"compact-${k.name.lowercase()}.png").outputStream().use{compact.compress(Bitmap.CompressFormat.PNG,100,it)}
                 val x=(i%3)*420f;val y=(i/3)*370f
                 c.drawText("${k.ordinal+1} / ${k.title}",x+14,y+25,paint)
-                val scaledHeight=minOf(314f,bitmap.height*390f/bitmap.width)
-                c.drawBitmap(bitmap,null,android.graphics.RectF(x+14,y+44,x+404,y+44+scaledHeight),null)
+                val scale=minOf(390f/bitmap.width,314f/bitmap.height)
+                val drawnWidth=bitmap.width*scale;val drawnHeight=bitmap.height*scale
+                val left=x+14+(390-drawnWidth)/2
+                c.drawBitmap(bitmap,null,android.graphics.RectF(left,y+44,left+drawnWidth,y+44+drawnHeight),null)
                 for((width,height)in listOf(300 to 96,180 to 250,360 to 520)){
                     val other=renderer.render(cfg.copy(light=!cfg.light,typography="mono",rows=10),empty,width,height,false)
                     assertTrue(other.allocationByteCount<=1_680_000)
                 }
-                if(k==WidgetKind.CLOCK)assertEquals(0,Color.alpha(bitmap.getPixel(1,1)))
+                if(k in listOf(WidgetKind.CLOCK,WidgetKind.VINYL,WidgetKind.CASSETTE))assertEquals(0,Color.alpha(bitmap.getPixel(1,1)))
                 val views=WidgetViews.build(context,500+k.ordinal,cfg,empty,300f,(k.height*300f/420).coerceAtLeast(54f))
                 val applied=views.apply(context,android.widget.FrameLayout(context))
                 assertNotNull(applied.findViewById<android.view.View>(R.id.surface))
-                applied.measure(android.view.View.MeasureSpec.makeMeasureSpec(600,android.view.View.MeasureSpec.EXACTLY),android.view.View.MeasureSpec.makeMeasureSpec((k.height*600/420),android.view.View.MeasureSpec.EXACTLY))
+                val dp=context.resources.displayMetrics.density
+                applied.measure(android.view.View.MeasureSpec.makeMeasureSpec((300*dp).toInt(),android.view.View.MeasureSpec.EXACTLY),android.view.View.MeasureSpec.makeMeasureSpec((k.height*300*dp/420).toInt().coerceAtLeast((54*dp).toInt()),android.view.View.MeasureSpec.EXACTLY))
                 applied.layout(0,0,applied.measuredWidth,applied.measuredHeight)
                 val native=Bitmap.createBitmap(applied.measuredWidth,applied.measuredHeight,Bitmap.Config.ARGB_8888)
                 applied.draw(Canvas(native))

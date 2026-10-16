@@ -1,0 +1,8 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:gravity="center" android:padding="16dp" android:background="#252525">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Widget Lab"
+        android:textColor="#FFFFFF" android:textSize="16sp" android:fontFamily="sans-serif-medium" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tap to reload this widget"
+        android:layout_marginTop="8dp" android:textColor="#CCCCCC" android:textSize="12sp" />
+</LinearLayout>

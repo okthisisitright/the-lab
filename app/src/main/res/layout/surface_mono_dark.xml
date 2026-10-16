@@ -14,10 +14,10 @@
     </FrameLayout>
     <AnalogClock android:id="@+id/analog" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="8dp" android:visibility="gone" android:dial="@drawable/dial_light" android:hand_hour="@drawable/hand_hour_light" android:hand_minute="@drawable/hand_minute_light" />
     <ImageView android:id="@+id/analog_cap" android:layout_width="12dp" android:layout_height="12dp" android:layout_gravity="center" android:importantForAccessibility="no" android:visibility="gone" />
-    <LinearLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="48dp" android:layout_gravity="bottom" android:gravity="end|center_vertical" android:paddingEnd="12dp" android:orientation="horizontal" android:visibility="gone">
-        <ImageView android:id="@+id/previous" android:layout_width="44dp" android:layout_height="44dp" android:padding="10dp" android:src="@drawable/control_previous" android:contentDescription="previous" />
-        <ImageView android:id="@+id/toggle" android:layout_width="44dp" android:layout_height="44dp" android:padding="10dp" android:src="@drawable/control_play" android:contentDescription="toggle" />
-        <ImageView android:id="@+id/next" android:layout_width="44dp" android:layout_height="44dp" android:padding="10dp" android:src="@drawable/control_next" android:contentDescription="next" />
-    </LinearLayout>
+    <FrameLayout android:id="@+id/transport" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+        <FrameLayout android:id="@+id/previous_slot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone"><ImageView android:id="@+id/previous" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:src="@drawable/control_previous" android:contentDescription="previous" /></FrameLayout>
+        <FrameLayout android:id="@+id/toggle_slot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone"><ImageView android:id="@+id/toggle" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:src="@drawable/control_play" android:contentDescription="toggle" /></FrameLayout>
+        <FrameLayout android:id="@+id/next_slot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone"><ImageView android:id="@+id/next" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="10dp" android:src="@drawable/control_next" android:contentDescription="next" /></FrameLayout>
+    </FrameLayout>
     <LinearLayout android:id="@+id/shortcut_host" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone" />
 </FrameLayout>

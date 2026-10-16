@@ -38,3 +38,5 @@ Inter, Barlow Condensed, Bodoni Moda, Rajdhani, IBM Plex Mono and Doto are bundl
 ## Circuit coordinates
 
 33 offline outlines derived from [Tomislav Bacinger’s F1 circuits GeoJSON](https://github.com/bacinger/f1-circuits), MIT license, pinned commit 394d8fbe70ef2c0b0c8d23ff7bee61fa09606055. Full license is bundled as CIRCUITS-MIT.txt. Local projection and rotation preserve shape for illustrative diagrams; these are unofficial outlines and not live telemetry. All 23 circuits in the checked 2026 Jolpica calendar have matching IDs.
+
+Google Sans, copyright 2025 The Google Sans Project Authors (https://github.com/googlefonts/googlesans), is bundled under SIL OFL 1.1. Full license: app/src/main/assets/notices/GOOGLE-SANS-OFL.txt. Source: https://github.com/google/fonts/tree/main/ofl/googlesans . This build subsets the original variable font to Latin, Cyrillic and common punctuation/symbols for application UI size; no reserved font names are declared in its license header. The widget collection retains its other credited display faces.

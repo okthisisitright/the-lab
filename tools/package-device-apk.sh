@@ -4,8 +4,10 @@ set -euo pipefail
 widgetlab_root="$(cd "$(dirname "$0")/.." && pwd)"
 widgetlab_sdk="${ANDROID_HOME:?Set ANDROID_HOME to the Android SDK}"
 widgetlab_tools="$widgetlab_sdk/build-tools/35.0.0"
-widgetlab_apk="$widgetlab_root/prebuilt/WidgetLab-0.2.0.apk"
-"$widgetlab_tools/apksigner" sign --ks "${WIDGETLAB_DEV_KEYSTORE:-$HOME/.android/debug.keystore}" --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --min-sdk-version 29 --out "$widgetlab_apk" "$widgetlab_root/app/build/outputs/apk/release/app-release-unsigned.apk"
+widgetlab_version="${1:-0.3.0}"
+[[ "$widgetlab_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 2
+widgetlab_apk="$widgetlab_root/prebuilt/WidgetLab-$widgetlab_version.apk"
+"$widgetlab_tools/apksigner" sign --ks "${WIDGETLAB_DEV_KEYSTORE:-$HOME/.android/debug.keystore}" --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --min-sdk-version 29 --v4-signing-enabled false --out "$widgetlab_apk" "$widgetlab_root/app/build/outputs/apk/release/app-release-unsigned.apk"
 "$widgetlab_tools/apksigner" verify --verbose --print-certs "$widgetlab_apk"
 "$widgetlab_tools/zipalign" -c -P 16 4 "$widgetlab_apk"
 python3 - "$widgetlab_apk" <<'PY'

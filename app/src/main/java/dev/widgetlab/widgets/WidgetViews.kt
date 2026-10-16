@@ -82,13 +82,19 @@ object WidgetViews {
             }
         }
         if(cfg.kind.isMusic){
-            views.setViewVisibility(R.id.transport,View.VISIBLE)
-            if(musicIsCompact(cfg.kind,h))views.setViewVisibility(R.id.previous,View.GONE)
-            listOf(R.id.previous to "previous",R.id.toggle to "toggle",R.id.next to "next").forEach{(view,action)->
+            val plan=MusicDesign.plan(cfg.kind,w,h)
+            views.setViewVisibility(R.id.transport,if(plan.controls.isEmpty())View.GONE else View.VISIBLE)
+            plan.controls.forEach { target ->
+                val action=target.action
+                val (view,slot)=when(action){"previous"->R.id.previous to R.id.previous_slot;"next"->R.id.next to R.id.next_slot;else->R.id.toggle to R.id.toggle_slot}
+                val b=target.bounds
+                fun px(v:Float)=(v*context.resources.displayMetrics.density).roundToInt().coerceAtLeast(0)
+                views.setViewVisibility(slot,View.VISIBLE)
+                views.setViewPadding(slot,px(b.x),px(b.y),px(w-b.x-b.w),px(h-b.y-b.h))
                 val supported=data.mediaAccess&&when(action){"previous"->data.media.previous;"next"->data.media.next;else->data.media.toggle}
                 val intent=Intent(context,WidgetActionReceiver::class.java).setAction("dev.widgetlab.MEDIA").setData(Uri.parse("widgetlab://media/$id/$action")).putExtra("widgetId",id).putExtra("control",action)
                 views.setOnClickPendingIntent(view,if(supported)PendingIntent.getBroadcast(context,id*10+view,intent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) else configure)
-                val color=if(supported)if(cfg.kind==WidgetKind.ARTWORK)Color.WHITE else ink else muted
+                val color=if(supported)Color.WHITE else 0x99FFFFFF.toInt()
                 val resource=when(action){"previous"->R.drawable.control_previous;"next"->R.drawable.control_next;else->if(data.media.playing)R.drawable.control_pause else R.drawable.control_play}
                 val icon=context.getDrawable(resource)!!.mutate().apply{setTint(color);setBounds(0,0,64,64)}
                 val bitmap=android.graphics.Bitmap.createBitmap(64,64,android.graphics.Bitmap.Config.ARGB_8888)

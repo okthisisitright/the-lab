@@ -18,14 +18,14 @@ class StudioUiTest {
         android.os.ParcelFileDescriptor.AutoCloseInputStream(screenshot).use{it.readBytes()}
     }
     @Test fun galleryOpensActualClockConfigurationAndChangesTransparency(){
-        compose.onNodeWithText("THE\nCOLLECTION").assertIsDisplayed()
+        compose.onNodeWithText("Make space.").assertIsDisplayed()
         screenshot("01-studio-home")
-        compose.onNodeWithContentDescription("Time / maison actual renderer preview").performScrollTo().performClick()
-        compose.onNodeWithText("Time / maison").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Minimal clock actual renderer preview").performScrollTo().performClick()
+        compose.onNodeWithText("Minimal clock").assertIsDisplayed()
         screenshot("02-clock-detail")
         compose.onNodeWithTag("design-settings").performScrollToNode(hasText("BACKGROUND"))
         compose.onNodeWithText("Solid").performScrollTo().performClick()
         compose.onNodeWithText("None").performScrollTo().performClick()
-        compose.onNodeWithText("Add to Home Screen  +").assertIsDisplayed()
+        compose.onNodeWithText("Add to home screen").assertIsDisplayed()
     }
 }

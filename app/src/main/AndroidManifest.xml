@@ -35,203 +35,203 @@
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".widgets.DriverWidget" android:label="Driver / editorial" android:exported="true">
+        <receiver android:name=".widgets.DriverWidget" android:label="Driver spotlight" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_driver" />
         </receiver>
-        <receiver android:name=".widgets.MinimalDriverWidget" android:label="Driver / paper" android:exported="true">
+        <receiver android:name=".widgets.MinimalDriverWidget" android:label="Minimal driver" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_minimaldriver" />
         </receiver>
-        <receiver android:name=".widgets.ConstructorWidget" android:label="Constructor / works" android:exported="true">
+        <receiver android:name=".widgets.ConstructorWidget" android:label="Team spotlight" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_constructor" />
         </receiver>
-        <receiver android:name=".widgets.DriverPodiumWidget" android:label="Drivers / podium" android:exported="true">
+        <receiver android:name=".widgets.DriverPodiumWidget" android:label="Driver podium" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_driverpodium" />
         </receiver>
-        <receiver android:name=".widgets.DriverStandingsWidget" android:label="Drivers / classification" android:exported="true">
+        <receiver android:name=".widgets.DriverStandingsWidget" android:label="Driver standings" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_driverstandings" />
         </receiver>
-        <receiver android:name=".widgets.TeamPodiumWidget" android:label="Constructors / podium" android:exported="true">
+        <receiver android:name=".widgets.TeamPodiumWidget" android:label="Team podium" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_teampodium" />
         </receiver>
-        <receiver android:name=".widgets.ConstructorStandingsWidget" android:label="Constructors / classification" android:exported="true">
+        <receiver android:name=".widgets.ConstructorStandingsWidget" android:label="Team standings" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_constructorstandings" />
         </receiver>
-        <receiver android:name=".widgets.WeekendWidget" android:label="Monte Carlo / calendar" android:exported="true">
+        <receiver android:name=".widgets.WeekendWidget" android:label="Race calendar" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_weekend" />
         </receiver>
-        <receiver android:name=".widgets.WeekendEditorialWidget" android:label="Weekend / race control" android:exported="true">
+        <receiver android:name=".widgets.WeekendEditorialWidget" android:label="Race weekend" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_weekendeditorial" />
         </receiver>
-        <receiver android:name=".widgets.CountdownWidget" android:label="Next / lights out" android:exported="true">
+        <receiver android:name=".widgets.CountdownWidget" android:label="Next race" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_countdown" />
         </receiver>
-        <receiver android:name=".widgets.ResultsWidget" android:label="Results / chequered" android:exported="true">
+        <receiver android:name=".widgets.ResultsWidget" android:label="Race results" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_results" />
         </receiver>
-        <receiver android:name=".widgets.CircuitWidget" android:label="Circuit / round file" android:exported="true">
+        <receiver android:name=".widgets.CircuitWidget" android:label="Circuit card" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_circuit" />
         </receiver>
-        <receiver android:name=".widgets.CompactWidget" android:label="Now / compact" android:exported="true">
+        <receiver android:name=".widgets.CompactWidget" android:label="Glass mini" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_compact" />
         </receiver>
-        <receiver android:name=".widgets.EditorialWidget" android:label="Record / editorial" android:exported="true">
+        <receiver android:name=".widgets.EditorialWidget" android:label="Glass album" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_editorial" />
         </receiver>
-        <receiver android:name=".widgets.GlassWidget" android:label="Glass / listening" android:exported="true">
+        <receiver android:name=".widgets.GlassWidget" android:label="Soft glass" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_glass" />
         </receiver>
-        <receiver android:name=".widgets.VinylWidget" android:label="Vinyl / studio" android:exported="true">
+        <receiver android:name=".widgets.VinylWidget" android:label="Circular player" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_vinyl" />
         </receiver>
-        <receiver android:name=".widgets.BrutalistWidget" android:label="Audio / brutal" android:exported="true">
+        <receiver android:name=".widgets.BrutalistWidget" android:label="Panorama player" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_brutalist" />
         </receiver>
-        <receiver android:name=".widgets.MatrixWidget" android:label="Signal / dot matrix" android:exported="true">
+        <receiver android:name=".widgets.MatrixWidget" android:label="Portrait player" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_matrix" />
         </receiver>
-        <receiver android:name=".widgets.CassetteWidget" android:label="Tape / archive" android:exported="true">
+        <receiver android:name=".widgets.CassetteWidget" android:label="Ambient disc" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_cassette" />
         </receiver>
-        <receiver android:name=".widgets.ArtworkWidget" android:label="Cover / full bleed" android:exported="true">
+        <receiver android:name=".widgets.ArtworkWidget" android:label="Now playing" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_artwork" />
         </receiver>
-        <receiver android:name=".widgets.ClockWidget" android:label="Time / air" android:exported="true">
+        <receiver android:name=".widgets.ClockWidget" android:label="Minimal clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_clock" />
         </receiver>
-        <receiver android:name=".widgets.ThinWidget" android:label="Time / hairline" android:exported="true">
+        <receiver android:name=".widgets.ThinWidget" android:label="Thin clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_thin" />
         </receiver>
-        <receiver android:name=".widgets.SwissWidget" android:label="Time / Swiss" android:exported="true">
+        <receiver android:name=".widgets.SwissWidget" android:label="Swiss clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_swiss" />
         </receiver>
-        <receiver android:name=".widgets.CinematicWidget" android:label="Time / cinema" android:exported="true">
+        <receiver android:name=".widgets.CinematicWidget" android:label="Cinematic clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_cinematic" />
         </receiver>
-        <receiver android:name=".widgets.GlassClockWidget" android:label="Time / glass" android:exported="true">
+        <receiver android:name=".widgets.GlassClockWidget" android:label="Glass clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_glassclock" />
         </receiver>
-        <receiver android:name=".widgets.BrutalClockWidget" android:label="Time / block" android:exported="true">
+        <receiver android:name=".widgets.BrutalClockWidget" android:label="Bold clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_brutalclock" />
         </receiver>
-        <receiver android:name=".widgets.DigitalWidget" android:label="Time / quartz" android:exported="true">
+        <receiver android:name=".widgets.DigitalWidget" android:label="Digital clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_digital" />
         </receiver>
-        <receiver android:name=".widgets.DotClockWidget" android:label="Time / pixels" android:exported="true">
+        <receiver android:name=".widgets.DotClockWidget" android:label="Dot clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_dotclock" />
         </receiver>
-        <receiver android:name=".widgets.SplitWidget" android:label="Time / diptych" android:exported="true">
+        <receiver android:name=".widgets.SplitWidget" android:label="Time and date" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_split" />
         </receiver>
-        <receiver android:name=".widgets.VerticalWidget" android:label="Time / vertical" android:exported="true">
+        <receiver android:name=".widgets.VerticalWidget" android:label="Vertical clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_vertical" />
         </receiver>
-        <receiver android:name=".widgets.CornerWidget" android:label="Time / corner" android:exported="true">
+        <receiver android:name=".widgets.CornerWidget" android:label="Corner clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_corner" />
         </receiver>
-        <receiver android:name=".widgets.DualWidget" android:label="Time / elsewhere" android:exported="true">
+        <receiver android:name=".widgets.DualWidget" android:label="Dual clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_dual" />
         </receiver>
-        <receiver android:name=".widgets.AnalogWidget" android:label="Time / dial" android:exported="true">
+        <receiver android:name=".widgets.AnalogWidget" android:label="Analog clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_analog" />
         </receiver>
-        <receiver android:name=".widgets.SerifWidget" android:label="Time / maison" android:exported="true">
+        <receiver android:name=".widgets.SerifWidget" android:label="Serif clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_serif" />
         </receiver>
-        <receiver android:name=".widgets.TerminalWidget" android:label="Time / terminal" android:exported="true">
+        <receiver android:name=".widgets.TerminalWidget" android:label="Terminal clock" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_terminal" />
         </receiver>
-        <receiver android:name=".widgets.PhotoWidget" android:label="Photo / edge" android:exported="true">
+        <receiver android:name=".widgets.PhotoWidget" android:label="Photo square" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_photo" />
         </receiver>
-        <receiver android:name=".widgets.FrameWidget" android:label="Photo / aperture" android:exported="true">
+        <receiver android:name=".widgets.FrameWidget" android:label="Photo frame" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_frame" />
         </receiver>
-        <receiver android:name=".widgets.PolaroidWidget" android:label="Photo / print" android:exported="true">
+        <receiver android:name=".widgets.PolaroidWidget" android:label="Photo print" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_polaroid" />
         </receiver>
-        <receiver android:name=".widgets.FilmstripWidget" android:label="Photo / sequence" android:exported="true">
+        <receiver android:name=".widgets.FilmstripWidget" android:label="Filmstrip" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_filmstrip" />
         </receiver>
-        <receiver android:name=".widgets.CollageWidget" android:label="Photo / contact" android:exported="true">
+        <receiver android:name=".widgets.CollageWidget" android:label="Photo collage" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_collage" />
         </receiver>
-        <receiver android:name=".widgets.BatteryWidget" android:label="Battery / air" android:exported="true">
+        <receiver android:name=".widgets.BatteryWidget" android:label="Minimal battery" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_battery" />
         </receiver>
-        <receiver android:name=".widgets.BatteryEditorialWidget" android:label="Battery / reserve" android:exported="true">
+        <receiver android:name=".widgets.BatteryEditorialWidget" android:label="Battery dashboard" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_batteryeditorial" />
         </receiver>
-        <receiver android:name=".widgets.FocusWidget" android:label="Focus / interruption" android:exported="true">
+        <receiver android:name=".widgets.FocusWidget" android:label="Do not disturb" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_focus" />
         </receiver>
-        <receiver android:name=".widgets.DateWidget" android:label="Date / agenda" android:exported="true">
+        <receiver android:name=".widgets.DateWidget" android:label="Date and agenda" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_date" />
         </receiver>
-        <receiver android:name=".widgets.TodayWidget" android:label="Today / briefing" android:exported="true">
+        <receiver android:name=".widgets.TodayWidget" android:label="Today" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_today" />
         </receiver>
-        <receiver android:name=".widgets.LabelWidget" android:label="Label / folder" android:exported="true">
+        <receiver android:name=".widgets.LabelWidget" android:label="Folder label" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_label" />
         </receiver>
-        <receiver android:name=".widgets.StripWidget" android:label="Launch / strip" android:exported="true">
+        <receiver android:name=".widgets.StripWidget" android:label="Quick launch" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_strip" />
         </receiver>
-        <receiver android:name=".widgets.LauncherWidget" android:label="Launch / editorial" android:exported="true">
+        <receiver android:name=".widgets.LauncherWidget" android:label="App panel" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_launcher" />
         </receiver>
-        <receiver android:name=".widgets.GridWidget" android:label="Launch / index" android:exported="true">
+        <receiver android:name=".widgets.GridWidget" android:label="Icon grid" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_grid" />
         </receiver>
-        <receiver android:name=".widgets.SectionWidget" android:label="Label / section" android:exported="true">
+        <receiver android:name=".widgets.SectionWidget" android:label="Section header" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/provider_section" />
         </receiver>

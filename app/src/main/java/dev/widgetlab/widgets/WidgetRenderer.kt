@@ -83,9 +83,9 @@ class WidgetRenderer(private val context:Context) {
         fun footer(s:Section<*>,season:String="")=label(fresh(s,season),pad,h-9f,max=inner)
         fun draw() {
             c.save()
-            val corner=when{cfg.surface=="transparent"->0f;cfg.kind in listOf(WidgetKind.BRUTALIST,WidgetKind.BRUTAL_CLOCK,WidgetKind.POLAROID)->0f;else->cfg.corners.toFloat()}
+            val corner=when{cfg.kind.isMusic->cfg.corners.toFloat();cfg.surface=="transparent"->0f;cfg.kind in listOf(WidgetKind.BRUTALIST,WidgetKind.BRUTAL_CLOCK,WidgetKind.POLAROID)->0f;else->cfg.corners.toFloat()}
             c.clipPath(Path().apply{addRoundRect(RectF(0f,0f,w,h),corner,corner,Path.Direction.CW)})
-            when(cfg.surface){
+            if(!cfg.kind.isMusic)when(cfg.surface){
                 "solid"->c.drawColor(paper)
                 "semi"->c.drawColor((paper and 0x00FFFFFF) or 0xB0000000.toInt())
                 "tint"->c.drawColor((accent and 0x00FFFFFF) or 0x45000000)
@@ -367,100 +367,70 @@ class WidgetRenderer(private val context:Context) {
             fit(race?.name?.removeSuffix(" Grand Prix") ?: "Circuit unavailable",pad,h*.87f,25f,inner)
             footer(s,race?.season.orEmpty())
         }
-        fun transport(){
-            if(!preview)return
-            val count=if(musicIsCompact(cfg.kind,h))2 else 3
-            val start=w-12-count*44
-            val actions=if(count==2)listOf("toggle","next") else listOf("previous","toggle","next")
-            actions.forEachIndexed{i,a->val x=start+i*44+22;val y=h-24
-                val enabled=d.mediaAccess&&when(a){"previous"->d.media.previous;"next"->d.media.next;else->d.media.toggle}
-                val color=if(enabled)if(cfg.kind==WidgetKind.ARTWORK)Color.WHITE else ink else muted
-                if(a=="toggle"&&d.media.playing){rect(x-5,y-7,3f,14f,color);rect(x+2,y-7,3f,14f,color)}
-                else{val backwards=a=="previous";val path=Path().apply{moveTo(x+if(backwards)5f else -5f,y-7);lineTo(x+if(backwards)-5f else 5f,y);lineTo(x+if(backwards)5f else -5f,y+7);close()};p.color=color;c.drawPath(path,p);if(a!="toggle")rect(x+if(backwards)-8f else 7f,y-7,2f,14f,color)}
+        fun musicControl(control:MusicControl) {
+            val b=control.bounds;val x=b.x+b.w/2;val y=b.y+b.h/2
+            val enabled=d.mediaAccess&&when(control.action){"previous"->d.media.previous;"next"->d.media.next;else->d.media.toggle}
+            val color=if(enabled)Color.WHITE else 0x99FFFFFF.toInt()
+            if(control.ring)circle(x,y,min(b.w,b.h)*.41f,color,1.3f)
+            val size=min(b.w,b.h)*if(control.ring).26f else .29f
+            if(control.action=="toggle"&&d.media.playing){rect(x-size*.55f,y-size*.65f,size*.35f,size*1.3f,color);rect(x+size*.2f,y-size*.65f,size*.35f,size*1.3f,color)}
+            else{
+                val reverse=control.action=="previous";val sign=if(reverse)-1 else 1
+                val path=Path().apply{moveTo(x-size*.43f*sign,y-size*.68f);lineTo(x+size*.65f*sign,y);lineTo(x-size*.43f*sign,y+size*.68f);close()};p.color=color;c.drawPath(path,p)
+                if(control.action!="toggle")rect(x+if(reverse)-size*.80f else size*.79f,y-size*.68f,size*.16f,size*1.36f,color)
             }
         }
         fun music(){
-            val m=d.media;val cover=m.artwork
+            val m=d.media;val cover=m.artwork;val k=cfg.kind
+            val layout=MusicDesign.plan(k,w,h);val f=layout.frame
             val track=if(!d.mediaAccess)"Connect your player" else m.title
             val artist=if(!d.mediaAccess)"Enable media access" else m.artist
-            val k=cfg.kind
-            if(musicIsCompact(k,h)){
-                val size=min(h-20,w*.21f);photograph(cover,Bounds(10f,(h-size)/2,size,size),8f)
-                val x=size+22;val max=w-x-100
-                text(track,x,h*.42f,15f,ink,"sans",650,max)
-                text(artist,x,h*.42f+20,10f,muted,max=max)
-                rect(10f+size-2,(h-size)/2,2f,size,accent)
-                transport();return
+            if(layout.circular){c.save();c.clipPath(Path().apply{addCircle(f.x+f.w/2,f.y+f.h/2,f.w/2,Path.Direction.CW)})}
+            val summary=k==WidgetKind.ARTWORK && h>=112
+            val glass=k in listOf(WidgetKind.COMPACT,WidgetKind.EDITORIAL,WidgetKind.GLASS)
+            val color=if(summary&&cfg.light)0xFF292A28.toInt() else Color.WHITE
+            val secondary=if(summary&&cfg.light)0xFF666864.toInt() else 0xDAFFFFFF.toInt()
+            rect(f.x,f.y,f.w,f.h,if(summary)if(cfg.light)0xFFE4E5E0.toInt() else 0xFF494B48.toInt() else if(glass)0x78373C39 else 0xFF303732.toInt(),if(layout.circular)0f else cfg.corners.toFloat())
+            if(!summary){
+                if(glass){
+                    val layer=c.saveLayerAlpha(RectF(f.x,f.y,f.x+f.w,f.y+f.h),90)
+                    photograph(MusicArtwork.diffuse(cover),f,empty=false)
+                    c.restoreToCount(layer)
+                }else photograph(if(layout.diffuse)MusicArtwork.diffuse(cover) else cover,f,empty=false)
+                rect(f.x,f.y,f.w,f.h,if(glass)0x18090D0A else if(layout.diffuse)0x50090D0A else 0x68070B08)
+                if(k in listOf(WidgetKind.GLASS,WidgetKind.COMPACT,WidgetKind.EDITORIAL)){
+                    rect(0f,0f,w,h,0x26FFFFFF)
+                    p.color=0x55FFFFFF;p.style=Paint.Style.STROKE;p.strokeWidth=1f
+                    c.drawRoundRect(RectF(.7f,.7f,w-.7f,h-.7f),cfg.corners.toFloat(),cfg.corners.toFloat(),p);p.style=Paint.Style.FILL
+                }
+                if(k==WidgetKind.MATRIX||k==WidgetKind.BRUTALIST){
+                    p.shader=LinearGradient(0f,h*.15f,0f,h,intArrayOf(0x12000000,0x65000000),null,Shader.TileMode.CLAMP);c.drawRect(0f,0f,w,h,p);p.shader=null
+                }
             }
-            val bottom=h-49f
-            when(k){
-                WidgetKind.EDITORIAL->{
-                    val artH=if(tall)h*.53f else bottom
-                    val artW=if(tall)w else w*.48f
-                    photograph(cover,Bounds(if(tall)0f else w-artW,0f,artW,artH))
-                    val x=pad;val top=if(tall)artH+22 else pad+6;val col=if(tall)inner else w*.48f-2*pad
-                    label(if(m.playing)"ON ROTATION" else "LISTENING ROOM",x,top,accent,col)
-                    title(track,x,top+36,min(36f,h*.12f),col)
-                    text(artist,x,if(tall)bottom-10 else bottom-27,12f,muted,max=col)
-                    line(pad,bottom,w-pad,bottom);label("STEREO / ${if(m.playing)"PLAYING" else "PAUSED"}",pad,h-20,max=w-165)
+            layout.cover?.let{b->if(layout.circular)circlePhoto(cover,b.x+b.w/2,b.y+b.h/2,b.w/2) else photograph(cover,b,if(k==WidgetKind.EDITORIAL)14f else 10f,empty=false)}
+            fun musicText(value:String,b:Bounds,size:Float,weight:Int,color:Int) {
+                if(b.w<=8||b.h<8)return
+                val lines=if(b.h>size*1.75f)2 else 1
+                val fitted=if(lines==1)value else value.trim().split(Regex("\\s+")).let{words->
+                    val result=mutableListOf<String>();var line=""
+                    p.typeface=LabType.face(context,"google",weight);p.textSize=size
+                    for(word in words){val candidate=if(line.isEmpty())word else "$line $word";if(p.measureText(candidate)>b.w&&line.isNotEmpty()){result+=line;line=word}else line=candidate}
+                    if(line.isNotEmpty())result+=line;result.take(2).joinToString("\n")
                 }
-                WidgetKind.GLASS->{
-                    if(cover!=null){photograph(cover,Bounds(0f,0f,w,h));rect(0f,0f,w,h,if(cfg.light)0xD0F2EEE3.toInt() else 0xC01C242A.toInt())}
-                    rect(12f,12f,w-24,h-24,if(cfg.light)0x75FFFFFF else 0x35FFFFFF,18f)
-                    line(28f,13f,w-28,13f,0x80FFFFFF.toInt())
-                    val size=min(88f,h*.39f);photograph(cover,Bounds(pad+4,pad+5,size,size),12f)
-                    val x=pad+size+19
-                    title(track,x,pad+34,25f,w-x-pad-6)
-                    text(artist,pad+4,bottom-18,13f,muted,max=inner-8)
-                    label("${if(m.playing)"PLAYING" else "PAUSED"} / SESSION",pad+4,h-20,max=w-175)
+                fitted.split('\n').take(lines).forEachIndexed{i,t->
+                    p.typeface=LabType.face(context,"google",weight);p.textSize=size
+                    val width=p.measureText(t).coerceAtMost(b.w)
+                    val x=if(layout.centered)b.x+(b.w-width)/2 else b.x
+                    text(t,x,b.y+min(size,b.h*.82f)+i*size*1.15f,size,color,"google",weight,b.w)
                 }
-                WidgetKind.VINYL->{
-                    val stacked=w/h<1.5f
-                    val radius=min(w*.35f,(bottom-if(stacked)74 else 40)*.49f);val cx=if(stacked)w*.5f else w*.3f;val cy=if(stacked)radius+12 else bottom*.48f
-                    circle(cx,cy,radius,0xFF090A0B.toInt())
-                    for(i in 1..18)circle(cx,cy,radius*(.45f+i*.029f),if(i%4==0)0xFF333437.toInt() else 0xFF202124.toInt(),.55f)
-                    circlePhoto(cover,cx,cy,radius*.39f);circle(cx,cy,3f,accent)
-                    val tx=if(stacked)pad else w*.63f;val ty=if(stacked)bottom-38 else bottom*.36f;val tw=if(stacked)inner else w-tx-pad
-                    text(track,tx,ty,23f,ink,"serif",500,tw);text(artist,tx,ty+21,11f,muted,max=tw)
-                    label("33⅓ / RECORD STUDY",pad,h-20,max=w-160)
-                }
-                WidgetKind.BRUTALIST->{
-                    rect(0f,0f,7f,h,accent);label("AUDIO / ${if(m.playing)"PLAY" else "HOLD"}",pad,pad+4)
-                    title(track.uppercase(),pad,73f,min(54f,h*.2f),inner,ink,"condensed")
-                    val artSize=min(50f,h*.22f);photograph(cover,Bounds(w-pad-artSize,bottom-artSize-6,artSize,artSize))
-                    text(artist.uppercase(),pad,bottom-14,11f,muted,"mono",400,inner-artSize-12)
-                    line(pad,bottom,w-pad,bottom,ink,3f);label("HI / FI",pad,h-20)
-                }
-                WidgetKind.MATRIX->{
-                    for(x in 0..(w/7).toInt())for(y in 0..(h/7).toInt())circle(x*7f,y*7f,.55f,if(cfg.light)0x18000000 else 0x18FFFFFF)
-                    label(if(m.playing)"● SIGNAL / ACTIVE" else "○ SIGNAL / IDLE",color=accent)
-                    val artSize=min(52f,h*.26f);photograph(cover,Bounds(w-pad-artSize,pad+20,artSize,artSize),4f)
-                    title(track.uppercase(),pad,80f,30f,inner-artSize-12,accent,"dots")
-                    text(artist,pad,bottom-12,11f,muted,"mono",400,inner)
-                    line(pad,bottom,w-pad,bottom);label("DIGITAL / STEREO",pad,h-20,max=w-160)
-                }
-                WidgetKind.CASSETTE->{
-                    val top=14f;val tapeH=bottom-22
-                    rect(14f,top,w-28,tapeH,0xFFB9AB8C.toInt(),9f)
-                    rect(25f,top+11,w-50,tapeH*.38f,0xFFEDE4D0.toInt(),3f)
-                    label("SIDE A / ${if(m.playing)"PLAY" else "PAUSE"}",33f,top+25,0xFF514B40.toInt())
-                    text(track,33f,top+50,22f,0xFF242621.toInt(),"serif",500,w-66)
-                    val cy=top+tapeH*.66f;val radius=min(22f,tapeH*.15f)
-                    rect(w*.24f,cy-radius-7,w*.52f,radius*2+14,0xFF2F3433.toInt(),radius+7)
-                    listOf(w*.3f,w*.7f).forEach{x->circle(x,cy,radius,0xFFDAD3BA.toInt());circle(x,cy,radius*.42f,0xFF313533.toInt());for(i in 0..5){val a=i*PI/3;line(x+cos(a).toFloat()*radius*.65f,cy+sin(a).toFloat()*radius*.65f,x+cos(a).toFloat()*radius*.87f,cy+sin(a).toFloat()*radius*.87f,0xFF575B50.toInt(),2f)}}
-                    text(artist,30f,top+tapeH-12,10f,0xFF383D35.toInt(),"mono",400,w-60)
-                    label("C / 60",pad,h-20)
-                }
-                WidgetKind.ARTWORK->{
-                    photograph(cover,Bounds(0f,0f,w,h))
-                    p.shader=LinearGradient(0f,h*.35f,0f,h,intArrayOf(Color.TRANSPARENT,0xF5080C10.toInt()),null,Shader.TileMode.CLAMP);c.drawRect(0f,0f,w,h,p);p.shader=null
-                    text(track,pad,bottom-38,27f,Color.WHITE,"sans",650,inner)
-                    text(artist,pad,bottom-16,12f,Color.LTGRAY,max=inner)
-                    label(if(m.playing)"PLAYING" else "PAUSED",pad,h-20,Color.LTGRAY,max=w-160)
-                }
-                else->Unit
             }
-            transport()
+            musicText(track,layout.title,layout.titleSize,600,color)
+            musicText(artist,layout.artist,min(17f,layout.titleSize*.72f),400,secondary)
+            layout.state?.let{musicText(if(!d.mediaAccess)"Media access required" else if(m.packageName.isBlank())"No active player" else if(m.playing)"Playing" else "Paused",it,if(summary)14f else 11f,500,secondary)}
+            if(summary){text("♫",w-40f,34f,28f,color,"sans",500,28f)}
+            else if(h>=180&&!layout.circular){text("♫",24f,26f,14f,0xCCFFFFFF.toInt(),max=20f)}
+            layout.controls.forEach{if(preview)musicControl(it) else if(it.ring){val b=it.bounds;circle(b.x+b.w/2,b.y+b.h/2,min(b.w,b.h)*.41f,0xBBFFFFFF.toInt(),1.3f)}}
+            if(layout.circular)c.restore()
         }
         fun clock(){
             val k=cfg.kind
