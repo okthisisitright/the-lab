@@ -70,7 +70,8 @@ class ReleaseWidgetTest {
                     val padding=AppWidgetHostView.getDefaultPaddingForWidget(activity,info.provider,null)
                     activity.container.addView(view,FrameLayout.LayoutParams((300*density).toInt()+padding.left+padding.right,(220*density).toInt()+padding.top+padding.bottom,Gravity.CENTER))
                 }
-                shell("am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n ${info.provider.flattenToString()} --eia appWidgetIds $id")
+                // bindAppWidgetIdIfAllowed/updateAppWidgetOptions ask the framework to send its
+                // own broadcasts. APPWIDGET_UPDATE is protected; a shell forgery is not valid.
                 awaitSurface(view,info.provider.className)
                 val name=info.provider.className.substringAfterLast('.')
                 if(name in setOf("ClockWidget","ThinWidget","SwissWidget","CinematicWidget","GlassClockWidget","BrutalClockWidget","DigitalWidget","DotClockWidget","SplitWidget","VerticalWidget","CornerWidget","DualWidget","SerifWidget","TerminalWidget")){
@@ -115,8 +116,13 @@ class ReleaseWidgetTest {
                 if(info.provider.className.endsWith("ClockWidget")){
                     shell("am kill --user 0 dev.widgetlab")
                     instrumentation.runOnMainSync{view.updateAppWidget(android.widget.RemoteViews("dev.widgetlab",context.packageManager.getResourcesForApplication("dev.widgetlab").getIdentifier("widget_surface","layout","dev.widgetlab")))}
-                    shell("am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n ${info.provider.flattenToString()} --eia appWidgetIds $id")
-                    awaitSurface(view,"process restart ${info.provider.className}")
+                    manager.updateAppWidgetOptions(id,Bundle().apply {
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,332)
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,332)
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,142)
+                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,142)
+                    })
+                    awaitSurface(view,"system update after process restart ${info.provider.className}")
                 }
             }
         } finally {ids.forEach{host.deleteAppWidgetId(it)};instrumentation.runOnMainSync{host.stopListening();activity.finish()};host.deleteHost()}
